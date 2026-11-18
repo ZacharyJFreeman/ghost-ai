@@ -50,3 +50,6 @@ Desktop.ini
 
 # claude code local settings
 .claude/settings.local.json
+
+# local issue notes
+context/current-issues.md

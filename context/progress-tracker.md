@@ -12,6 +12,8 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Completed
 
+- Auth fix: added `NEXT_PUBLIC_CLERK_AFTER_SIGN_OUT_URL=/sign-in` to `.env.local` so sign-out from `/editor` no longer redirects back to a protected page (suspected cause of the "unexpected response from the server" error). Not yet confirmed with a live sign-out. The `__clerk_handshake` URL on first sign-in is normal Clerk dev-instance behavior (`dev-browser-missing`); no change made.
+
 - 03 Auth (added standard Clerk sign-in/sign-up URL and force-redirect (to `/editor`) env vars to `.env.local`, confirmed by user): `ClerkProvider` (in `Suspense`, for Cache Components) wraps root layout with `dark` theme from `@clerk/ui/themes` + variables mapped to CSS vars (`lib/clerk-appearance.ts`); `(auth)` route group with two-panel `AuthShell` and `SignIn`/`SignUp` pages; root `proxy.ts` protects all routes except sign-in/sign-up (from env vars); `/` redirects to `/editor` or `/sign-in`; `UserButton` in editor navbar right section; `/editor` page mounts navbar + sidebar via `components/editor/editor-shell.tsx`. Installed `@clerk/ui`. `npm run build` and `npm run lint` pass; no browser check with a live sign-in.
 
 - 02 Editor navbar: `components/editor/editor-navbar.tsx` — `h-12` top bar with left/center/right sections (center and right empty), ghost icon button toggling `PanelLeftOpen`/`PanelLeftClose` from `isOpen`, optional `onToggle` handler; uses `bg-surface` + `border-surface-border`. Added from the user's expected-output screenshot (not in the spec file).
