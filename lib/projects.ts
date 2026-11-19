@@ -1,0 +1,22 @@
+export interface Project {
+  id: string
+  name: string
+  slug: string
+  isOwner: boolean
+}
+
+export function slugify(name: string): string {
+  return name
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+}
+
+// Mock data only — replaced by real project data once persistence exists.
+export const MOCK_PROJECTS: Project[] = [
+  { id: "p1", name: "Payments Platform", slug: "payments-platform", isOwner: true },
+  { id: "p2", name: "Realtime Chat", slug: "realtime-chat", isOwner: true },
+  { id: "p3", name: "Data Pipeline", slug: "data-pipeline", isOwner: false },
+]

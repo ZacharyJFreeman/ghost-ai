@@ -1,14 +1,19 @@
 "use client"
 
-import { FolderOpen, Plus, Users, X } from "lucide-react"
+import { FolderOpen, Pencil, Plus, Trash2, Users, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type { Project } from "@/lib/projects"
 import { cn } from "@/lib/utils"
 
 interface ProjectSidebarProps {
   isOpen: boolean
+  projects: Project[]
   onClose?: () => void
+  onCreate: () => void
+  onRename: (project: Project) => void
+  onDelete: (project: Project) => void
 }
 
 interface EmptyStateProps {
@@ -27,8 +32,71 @@ function EmptyState({ icon, title, description }: EmptyStateProps) {
   )
 }
 
-export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
+interface ProjectListProps {
+  projects: Project[]
+  empty: React.ReactNode
+  onRename: (project: Project) => void
+  onDelete: (project: Project) => void
+}
+
+function ProjectList({ projects, empty, onRename, onDelete }: ProjectListProps) {
+  if (projects.length === 0) return empty
+
   return (
+    <ul className="flex flex-col gap-1">
+      {projects.map((project) => (
+        <li
+          key={project.id}
+          className="group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm text-copy-secondary hover:bg-subtle"
+        >
+          <span className="truncate">{project.name}</span>
+          {project.isOwner && (
+            <span className="flex shrink-0 items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                aria-label={`Rename ${project.name}`}
+                onClick={() => onRename(project)}
+              >
+                <Pencil />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                aria-label={`Delete ${project.name}`}
+                onClick={() => onDelete(project)}
+              >
+                <Trash2 />
+              </Button>
+            </span>
+          )}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+export function ProjectSidebar({
+  isOpen,
+  projects,
+  onClose,
+  onCreate,
+  onRename,
+  onDelete,
+}: ProjectSidebarProps) {
+  const myProjects = projects.filter((project) => project.isOwner)
+  const sharedProjects = projects.filter((project) => !project.isOwner)
+
+  return (
+    <>
+    <div
+      aria-hidden="true"
+      onClick={onClose}
+      className={cn(
+        "fixed inset-0 z-30 bg-background/70 transition-opacity duration-200 md:hidden",
+        isOpen ? "opacity-100" : "pointer-events-none opacity-0"
+      )}
+    />
     <aside
       aria-label="Projects"
       aria-hidden={!isOpen}
@@ -56,27 +124,42 @@ export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
           <TabsTrigger value="shared">Shared</TabsTrigger>
         </TabsList>
         <TabsContent value="my-projects">
-          <EmptyState
-            icon={<FolderOpen className="h-5 w-5" />}
-            title="No projects yet"
-            description="Projects you create will appear here."
+          <ProjectList
+            projects={myProjects}
+            onRename={onRename}
+            onDelete={onDelete}
+            empty={
+              <EmptyState
+                icon={<FolderOpen className="h-5 w-5" />}
+                title="No projects yet"
+                description="Projects you create will appear here."
+              />
+            }
           />
         </TabsContent>
         <TabsContent value="shared">
-          <EmptyState
-            icon={<Users className="h-5 w-5" />}
-            title="Nothing shared yet"
-            description="Projects shared with you will appear here."
+          <ProjectList
+            projects={sharedProjects}
+            onRename={onRename}
+            onDelete={onDelete}
+            empty={
+              <EmptyState
+                icon={<Users className="h-5 w-5" />}
+                title="Nothing shared yet"
+                description="Projects shared with you will appear here."
+              />
+            }
           />
         </TabsContent>
       </Tabs>
 
       <div className="border-t border-surface-border p-4">
-        <Button className="w-full">
+        <Button className="w-full" onClick={onCreate}>
           <Plus className="h-4 w-4" />
           New Project
         </Button>
       </div>
     </aside>
+    </>
   )
 }
