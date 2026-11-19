@@ -53,3 +53,8 @@ Desktop.ini
 
 # local issue notes
 context/current-issues.md
+node_modules/
+dist/
+.env
+
+/app/generated/prisma
