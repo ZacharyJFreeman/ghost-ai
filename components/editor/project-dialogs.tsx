@@ -10,16 +10,26 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import type { ProjectDialogState } from "@/hooks/use-project-dialogs"
+import type { ProjectDialogState } from "@/hooks/use-project-actions"
 
 interface ProjectDialogsProps {
   dialog: ProjectDialogState
   name: string
   setName: (name: string) => void
   slug: string
+  roomId: string
   isLoading: boolean
+  error: string | null
   close: () => void
   submit: () => Promise<void>
+}
+
+function ErrorMessage({ message }: { message: string }) {
+  return (
+    <p role="alert" className="text-xs text-error">
+      {message}
+    </p>
+  )
 }
 
 function SlugError() {
@@ -35,7 +45,9 @@ export function ProjectDialogs({
   name,
   setName,
   slug,
+  roomId,
   isLoading,
+  error,
   close,
   submit,
 }: ProjectDialogsProps) {
@@ -74,9 +86,10 @@ export function ProjectDialogs({
                 autoFocus
               />
               <p className="text-xs text-copy-muted">
-                Slug: <span className="font-mono text-copy-secondary">{slug || "—"}</span>
+                Room ID: <span className="font-mono text-copy-secondary">{roomId || "—"}</span>
               </p>
               {hasInvalidSlug && <SlugError />}
+              {error && <ErrorMessage message={error} />}
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={close} disabled={isLoading}>
@@ -113,6 +126,7 @@ export function ProjectDialogs({
                 autoFocus
               />
               {hasInvalidSlug && <SlugError />}
+              {error && <ErrorMessage message={error} />}
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={close} disabled={isLoading}>
@@ -138,6 +152,7 @@ export function ProjectDialogs({
               ? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
+          {error && <ErrorMessage message={error} />}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={close} disabled={isLoading}>
               Cancel

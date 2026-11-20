@@ -9,7 +9,8 @@ import { cn } from "@/lib/utils"
 
 interface ProjectSidebarProps {
   isOpen: boolean
-  projects: Project[]
+  ownedProjects: Project[]
+  sharedProjects: Project[]
   onClose?: () => void
   onCreate: () => void
   onRename: (project: Project) => void
@@ -78,15 +79,13 @@ function ProjectList({ projects, empty, onRename, onDelete }: ProjectListProps) 
 
 export function ProjectSidebar({
   isOpen,
-  projects,
+  ownedProjects,
+  sharedProjects,
   onClose,
   onCreate,
   onRename,
   onDelete,
 }: ProjectSidebarProps) {
-  const myProjects = projects.filter((project) => project.isOwner)
-  const sharedProjects = projects.filter((project) => !project.isOwner)
-
   return (
     <>
     <div
@@ -125,7 +124,7 @@ export function ProjectSidebar({
         </TabsList>
         <TabsContent value="my-projects">
           <ProjectList
-            projects={myProjects}
+            projects={ownedProjects}
             onRename={onRename}
             onDelete={onDelete}
             empty={

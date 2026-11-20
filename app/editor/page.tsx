@@ -1,5 +1,11 @@
-import { EditorShell } from "@/components/editor/editor-shell"
+import { Suspense } from "react"
+
+import { EditorLoader } from "@/components/editor/editor-loader"
 
 export default function EditorPage() {
-  return <EditorShell />
+  return (
+    <Suspense fallback={null}>
+      <EditorLoader />
+    </Suspense>
+  )
 }

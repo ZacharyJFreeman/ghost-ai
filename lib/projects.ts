@@ -1,7 +1,6 @@
 export interface Project {
   id: string
   name: string
-  slug: string
   isOwner: boolean
 }
 
@@ -14,9 +13,12 @@ export function slugify(name: string): string {
     .replace(/^-+|-+$/g, "")
 }
 
-// Mock data only — replaced by real project data once persistence exists.
-export const MOCK_PROJECTS: Project[] = [
-  { id: "p1", name: "Payments Platform", slug: "payments-platform", isOwner: true },
-  { id: "p2", name: "Realtime Chat", slug: "realtime-chat", isOwner: true },
-  { id: "p3", name: "Data Pipeline", slug: "data-pipeline", isOwner: false },
-]
+// Short random suffix that keeps room IDs unique across projects with the same name.
+export function generateIdSuffix(): string {
+  return crypto.randomUUID().replace(/-/g, "").slice(0, 6)
+}
+
+// The project ID doubles as the Liveblocks room ID.
+export function buildRoomId(slug: string, suffix: string): string {
+  return `${slug}-${suffix}`
+}
