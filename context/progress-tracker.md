@@ -8,9 +8,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- 05 Prisma — implemented (see Completed). Spec at `context/feature-specs/05-prisma.md`.
+- 06 Project APIs — implemented (see Completed). Spec at `context/feature-specs/06-project-apis.md`.
 
 ## Completed
+
+- 06 Project APIs (implemented, backend only, awaiting live check; uncommitted): `app/api/projects/route.ts` (`GET` lists the current user's owned projects, newest first → `{ projects }`; `POST` creates with `ownerId` = Clerk user ID, blank/missing name → `Untitled Project`, Prisma `cuid()` ID → `201 { project }`) and `app/api/projects/[projectId]/route.ts` (`PATCH` rename → `{ project }`; `DELETE` → `{ success: true }`; both check ownership before mutating: `404` if the project doesn't exist, `403` if not the owner). Unauthenticated → `401 { error }`; bad input → `400 { error }`; all errors use `{ error }`. Helpers: `lib/api-response.ts` (`errorResponse`, `getAuthenticatedUserId`, `readJsonBody`) and `lib/project-validation.ts` (name parsing). `proxy.ts` now treats `/api(.*)` as non-protected so the handlers return their own JSON `401` instead of Clerk's `auth.protect()` redirect/404; every handler still authenticates. UI is not wired (still mock data). `tsc`, `npm run lint`, and `npm run build` pass; routes were not called against a running server.
 
 - 05 Prisma (implemented; uncommitted): `prisma/models/project.prisma` with `ProjectStatus` enum (`DRAFT`, `ARCHIVED`), `Project` (cuid id, `ownerId` = Clerk user ID, name, optional description, status default `DRAFT`, `canvasJsonPath?`, `createdAt`/`updatedAt`, indexes on `ownerId` and `createdAt`) and `ProjectCollaborator` (project relation `onDelete: Cascade`, email, `createdAt`, `@@unique([projectId, email])`, indexes on `email` and `[projectId, createdAt]`). `lib/prisma.ts`: cached singleton on `globalThis` (dev only); `prisma+postgres://` URLs use `new PrismaClient({ accelerateUrl })`, otherwise `PrismaPg` adapter. Ran `prisma migrate dev --name init` (migration `20261119072027_init` created and applied) and `prisma generate`. `prisma validate`, `tsc`, `npm run lint`, and `npm run build` pass. Nothing imports `lib/prisma.ts` yet; no queries or API routes.
 
@@ -35,6 +37,8 @@ Update this file whenever the current phase, active feature, or implementation s
 - Add the next planned feature unit here.
 
 ## Open Questions
+
+- 06: choices not defined in the spec: (a) `GET` returns only owned projects (not collaborator/shared ones); (b) missing project on `PATCH`/`DELETE` returns `404`; (c) rename requires a non-empty string `name` (`400` otherwise) and names are trimmed; (d) no max name length; (e) `/api` excluded from the `proxy.ts` `auth.protect()` gate to get a true `401`; (f) the `Project` model has no `slug`, so none is returned or stored.
 
 - 05: `@prisma/extension-accelerate` is now installed (user request) but not yet applied in `lib/prisma.ts`, which still uses only the `accelerateUrl` client option. Applying `.$extends(withAccelerate())` would change the client's type vs. the direct `pg` branch; decide when caching is needed. The Accelerate path is untested; only the direct `pg` path matches the current `.env`.
 

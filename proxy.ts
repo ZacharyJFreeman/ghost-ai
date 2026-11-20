@@ -1,6 +1,9 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
 
+// API routes authenticate themselves so unauthenticated calls get a JSON 401
+// instead of a redirect or 404 from auth.protect().
 const isPublicRoute = createRouteMatcher([
+  "/api(.*)",
   `${process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL}(.*)`,
   `${process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL}(.*)`,
 ])
