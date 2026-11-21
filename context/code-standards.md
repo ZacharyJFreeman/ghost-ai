@@ -26,7 +26,8 @@
 
 - Use CSS custom property tokens defined in `globals.css` — no raw Tailwind color classes like `zinc-*` or hardcoded hex values.
 - Reference tokens through their Tailwind utility names: `bg-base`, `text-copy-primary`, `border-surface-border`, `text-brand`, etc.
-- Maintain the border radius scale: `rounded-xl` for small elements, `rounded-2xl` for cards, `rounded-3xl` for modals.
+- Maintain the border radius scale: `rounded-xl` for small elements, `rounded-2xl` for cards, `rounded-3xl` for modals, `rounded-full` for pill controls and badges.
+- Build dialogs, panels, pill buttons/inputs and badges from `components/app/*` (see `ui-context.md`) instead of restyling `components/ui/*`.
 
 ## API Routes
 
