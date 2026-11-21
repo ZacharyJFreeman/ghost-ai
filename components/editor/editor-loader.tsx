@@ -1,31 +1,15 @@
-import { auth, currentUser } from "@clerk/nextjs/server"
-import { notFound } from "next/navigation"
+import { redirect } from "next/navigation"
 
 import { EditorShell } from "@/components/editor/editor-shell"
 import { getEditorProjects } from "@/lib/project-queries"
-
-interface EditorLoaderProps {
-  activeProjectId?: string
-}
+import { getCurrentIdentity } from "@/lib/project-access"
 
 // Fetches owned and shared projects on the server and hands them to the shell.
-export async function EditorLoader({ activeProjectId }: EditorLoaderProps) {
-  const { userId } = await auth.protect()
-  const user = await currentUser()
-  const email = user?.primaryEmailAddress?.emailAddress ?? null
+export async function EditorLoader() {
+  const identity = await getCurrentIdentity()
+  if (!identity) redirect("/sign-in")
 
-  const { owned, shared } = await getEditorProjects(userId, email)
+  const { owned, shared } = await getEditorProjects(identity.userId, identity.email)
 
-  const activeProject = activeProjectId
-    ? [...owned, ...shared].find((project) => project.id === activeProjectId)
-    : undefined
-  if (activeProjectId && !activeProject) notFound()
-
-  return (
-    <EditorShell
-      ownedProjects={owned}
-      sharedProjects={shared}
-      activeProject={activeProject}
-    />
-  )
+  return <EditorShell ownedProjects={owned} sharedProjects={shared} />
 }

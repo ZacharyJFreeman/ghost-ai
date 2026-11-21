@@ -31,7 +31,7 @@ async function request(url: string, method: string, body?: unknown): Promise<Api
 
 export function useProjectActions() {
   const router = useRouter()
-  const { projectId: activeProjectId } = useParams<{ projectId?: string }>()
+  const { roomId: activeProjectId } = useParams<{ roomId?: string }>()
 
   const [dialog, setDialog] = useState<ProjectDialogState>({ type: "closed" })
   const [name, setName] = useState("")

@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 
 interface ProjectSidebarProps {
   isOpen: boolean
+  activeProjectId?: string
   ownedProjects: Project[]
   sharedProjects: Project[]
   onClose?: () => void
@@ -35,12 +36,13 @@ function EmptyState({ icon, title, description }: EmptyStateProps) {
 
 interface ProjectListProps {
   projects: Project[]
+  activeProjectId?: string
   empty: React.ReactNode
   onRename: (project: Project) => void
   onDelete: (project: Project) => void
 }
 
-function ProjectList({ projects, empty, onRename, onDelete }: ProjectListProps) {
+function ProjectList({ projects, activeProjectId, empty, onRename, onDelete }: ProjectListProps) {
   if (projects.length === 0) return empty
 
   return (
@@ -48,7 +50,11 @@ function ProjectList({ projects, empty, onRename, onDelete }: ProjectListProps) 
       {projects.map((project) => (
         <li
           key={project.id}
-          className="group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm text-copy-secondary hover:bg-subtle"
+          aria-current={project.id === activeProjectId ? "page" : undefined}
+          className={cn(
+            "group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm text-copy-secondary hover:bg-subtle",
+            project.id === activeProjectId && "bg-subtle text-copy-primary"
+          )}
         >
           <span className="truncate">{project.name}</span>
           {project.isOwner && (
@@ -79,6 +85,7 @@ function ProjectList({ projects, empty, onRename, onDelete }: ProjectListProps) 
 
 export function ProjectSidebar({
   isOpen,
+  activeProjectId,
   ownedProjects,
   sharedProjects,
   onClose,
@@ -125,6 +132,7 @@ export function ProjectSidebar({
         <TabsContent value="my-projects">
           <ProjectList
             projects={ownedProjects}
+            activeProjectId={activeProjectId}
             onRename={onRename}
             onDelete={onDelete}
             empty={
@@ -139,6 +147,7 @@ export function ProjectSidebar({
         <TabsContent value="shared">
           <ProjectList
             projects={sharedProjects}
+            activeProjectId={activeProjectId}
             onRename={onRename}
             onDelete={onDelete}
             empty={
