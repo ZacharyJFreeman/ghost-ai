@@ -2,7 +2,7 @@
 
 import { FolderOpen, Pencil, Plus, Trash2, Users, X } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
+import { PillButton } from "@/components/app/pill-button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { Project } from "@/lib/projects"
 import { cn } from "@/lib/utils"
@@ -52,29 +52,29 @@ function ProjectList({ projects, activeProjectId, empty, onRename, onDelete }: P
           key={project.id}
           aria-current={project.id === activeProjectId ? "page" : undefined}
           className={cn(
-            "group flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm text-copy-secondary hover:bg-subtle",
-            project.id === activeProjectId && "bg-subtle text-copy-primary"
+            "group flex items-center justify-between gap-2 rounded-2xl border border-surface-border bg-base px-3 py-2.5 text-sm text-copy-secondary hover:bg-subtle",
+            project.id === activeProjectId && "border-brand/40 bg-accent-dim text-copy-primary"
           )}
         >
           <span className="truncate">{project.name}</span>
           {project.isOwner && (
             <span className="flex shrink-0 items-center gap-1">
-              <Button
+              <PillButton
                 variant="ghost"
-                size="icon-xs"
+                size="icon-sm"
                 aria-label={`Rename ${project.name}`}
                 onClick={() => onRename(project)}
               >
                 <Pencil />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-xs"
+              </PillButton>
+              <PillButton
+                variant="danger"
+                size="icon-sm"
                 aria-label={`Delete ${project.name}`}
                 onClick={() => onDelete(project)}
               >
                 <Trash2 />
-              </Button>
+              </PillButton>
             </span>
           )}
         </li>
@@ -114,20 +114,24 @@ export function ProjectSidebar({
     >
       <header className="flex items-center justify-between border-b border-surface-border px-4 py-3">
         <h2 className="text-sm font-medium text-copy-primary">Projects</h2>
-        <Button
+        <PillButton
           variant="ghost"
           size="icon-sm"
           aria-label="Close projects sidebar"
           onClick={onClose}
         >
-          <X className="h-4 w-4" />
-        </Button>
+          <X />
+        </PillButton>
       </header>
 
       <Tabs defaultValue="my-projects" className="flex-1 gap-3 overflow-y-auto p-4">
-        <TabsList className="w-full">
-          <TabsTrigger value="my-projects">My Projects</TabsTrigger>
-          <TabsTrigger value="shared">Shared</TabsTrigger>
+        <TabsList className="w-full rounded-full">
+          <TabsTrigger value="my-projects" className="rounded-full">
+            My Projects
+          </TabsTrigger>
+          <TabsTrigger value="shared" className="rounded-full">
+            Shared
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="my-projects">
           <ProjectList
@@ -162,10 +166,10 @@ export function ProjectSidebar({
       </Tabs>
 
       <div className="border-t border-surface-border p-4">
-        <Button className="w-full" onClick={onCreate}>
-          <Plus className="h-4 w-4" />
+        <PillButton className="w-full" onClick={onCreate}>
+          <Plus />
           New Project
-        </Button>
+        </PillButton>
       </div>
     </aside>
     </>

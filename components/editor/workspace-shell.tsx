@@ -3,11 +3,12 @@
 import { PanelRight, Share2 } from "lucide-react"
 import { useState } from "react"
 
+import { Panel } from "@/components/app/panel"
+import { PillButton } from "@/components/app/pill-button"
 import { EditorNavbar } from "@/components/editor/editor-navbar"
 import { ProjectDialogs } from "@/components/editor/project-dialogs"
 import { ProjectSidebar } from "@/components/editor/project-sidebar"
 import { ShareDialog } from "@/components/editor/share-dialog"
-import { Button } from "@/components/ui/button"
 import { useProjectActions } from "@/hooks/use-project-actions"
 import { useShareDialog } from "@/hooks/use-share-dialog"
 import type { Project } from "@/lib/projects"
@@ -32,34 +33,38 @@ export function WorkspaceShell({ project, ownedProjects, sharedProjects }: Works
         title={project.name}
         actions={
           <>
-            <Button variant="outline" size="sm" onClick={() => void share.open()}>
-              <Share2 className="h-4 w-4" />
+            <PillButton variant="dark" size="sm" onClick={() => void share.open()}>
+              <Share2 />
               Share
-            </Button>
-            <Button
+            </PillButton>
+            <PillButton
               variant="ghost"
               size="icon"
               aria-label={isAiOpen ? "Close AI sidebar" : "Open AI sidebar"}
               aria-pressed={isAiOpen}
               onClick={() => setIsAiOpen((open) => !open)}
             >
-              <PanelRight className="h-5 w-5" />
-            </Button>
+              <PanelRight className="size-5" />
+            </PillButton>
           </>
         }
       />
 
       <div className="flex min-h-0 flex-1">
-        <main className="flex min-w-0 flex-1 items-center justify-center bg-base px-4 text-center">
-          <p className="text-sm text-copy-muted">Canvas coming soon</p>
+        <main className="flex min-w-0 flex-1 items-center justify-center bg-base p-6">
+          <div className="rounded-2xl border border-dashed border-surface-border px-8 py-10 text-center">
+            <p className="text-sm text-copy-muted">Canvas coming soon</p>
+          </div>
         </main>
 
         {isAiOpen && (
           <aside
             aria-label="AI chat"
-            className="hidden w-80 shrink-0 flex-col items-center justify-center border-l border-surface-border bg-surface px-4 text-center md:flex"
+            className="hidden w-80 shrink-0 flex-col justify-center border-l border-surface-border bg-surface p-4 md:flex"
           >
-            <p className="text-sm text-copy-muted">AI chat coming soon</p>
+            <Panel className="text-center">
+              <p className="text-sm text-copy-muted">AI chat coming soon</p>
+            </Panel>
           </aside>
         )}
       </div>
