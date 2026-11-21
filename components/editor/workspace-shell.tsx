@@ -6,8 +6,10 @@ import { useState } from "react"
 import { EditorNavbar } from "@/components/editor/editor-navbar"
 import { ProjectDialogs } from "@/components/editor/project-dialogs"
 import { ProjectSidebar } from "@/components/editor/project-sidebar"
+import { ShareDialog } from "@/components/editor/share-dialog"
 import { Button } from "@/components/ui/button"
 import { useProjectActions } from "@/hooks/use-project-actions"
+import { useShareDialog } from "@/hooks/use-share-dialog"
 import type { Project } from "@/lib/projects"
 
 interface WorkspaceShellProps {
@@ -20,6 +22,7 @@ export function WorkspaceShell({ project, ownedProjects, sharedProjects }: Works
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isAiOpen, setIsAiOpen] = useState(true)
   const { openCreate, openRename, openDelete, ...dialogs } = useProjectActions()
+  const share = useShareDialog(project.id)
 
   return (
     <div className="flex h-screen flex-col bg-base">
@@ -29,8 +32,7 @@ export function WorkspaceShell({ project, ownedProjects, sharedProjects }: Works
         title={project.name}
         actions={
           <>
-            {/* Sharing behavior is out of scope for this spec. */}
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => void share.open()}>
               <Share2 className="h-4 w-4" />
               Share
             </Button>
@@ -73,6 +75,7 @@ export function WorkspaceShell({ project, ownedProjects, sharedProjects }: Works
         onDelete={openDelete}
       />
       <ProjectDialogs {...dialogs} />
+      <ShareDialog share={share} isOwner={project.isOwner} />
     </div>
   )
 }
