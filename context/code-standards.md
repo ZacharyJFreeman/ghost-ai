@@ -17,6 +17,7 @@
 ## Next.js
 
 - Default to React Server Components.
+- Server pages that need a signed-in user check auth themselves (e.g. `getCurrentIdentity()` in `lib/project-access.ts`) and redirect to `/sign-in`.
 - Add `"use client"` only when the component needs browser interactivity, hooks, or real-time state.
 - Keep route handlers focused on a single responsibility.
 - Long-running work belongs in background tasks, not in request handlers.
@@ -25,7 +26,8 @@
 
 - Use CSS custom property tokens defined in `globals.css` — no raw Tailwind color classes like `zinc-*` or hardcoded hex values.
 - Reference tokens through their Tailwind utility names: `bg-base`, `text-copy-primary`, `border-surface-border`, `text-brand`, etc.
-- Maintain the border radius scale: `rounded-xl` for small elements, `rounded-2xl` for cards, `rounded-3xl` for modals.
+- Maintain the border radius scale: `rounded-xl` for small elements, `rounded-2xl` for cards, `rounded-3xl` for modals, `rounded-full` for pill controls and badges.
+- Build dialogs, panels, pill buttons/inputs and badges from `components/app/*` (see `ui-context.md`) instead of restyling `components/ui/*`.
 
 ## API Routes
 
@@ -33,6 +35,7 @@
 - Enforce auth and project ownership checks before any mutation.
 - Return consistent, predictable response shapes.
 - Keep route handlers thin — push complexity into shared modules or background tasks.
+- Do not rely on `proxy.ts` for protection: each route handler authenticates itself and returns `401` when signed out.
 
 ## Data and Storage
 

@@ -44,6 +44,7 @@ Both fonts are loaded via `next/font/google` and applied as CSS variables on the
 | Inline / small UI | `rounded-xl`  |
 | Cards / panels    | `rounded-2xl` |
 | Modal / overlay   | `rounded-3xl` |
+| Controls (inputs, buttons, tabs), badges, avatars | `rounded-full` (pill) |
 
 ## Canvas
 
@@ -71,6 +72,22 @@ Smooth-step path with an arrow marker. Default edge color: `#f8fafc`. Stroke wid
 ## Component Library
 
 shadcn/ui on top of Tailwind. Components live in `components/ui/` and are treated as protected foundation components. Use the CLI to add new components rather than writing them from scratch, and put project-specific styling in app-level components instead of editing `components/ui/*`.
+
+## App Components
+
+The share dialog defines the visual language for the whole app: a large rounded dialog frame, a header with a divider, content grouped in bordered rounded panels, pill-shaped controls, and small uppercase badges. This look lives in `components/app/` (not in `components/ui/*`, which stays default). Screens must use these instead of restyling shadcn components ad hoc:
+
+| Component              | Purpose |
+| ---------------------- | ------- |
+| `app-dialog.tsx`       | Dialog shell: `rounded-3xl`, `bg-surface` frame, header with divider and its own close button, padded body, optional footer. Wraps `ui/dialog`. |
+| `panel.tsx`            | Bordered `rounded-2xl` section on `bg-base`, with optional title, description and right-side action. |
+| `pill-button.tsx`      | Pill buttons: `primary` (brand fill), `dark` (secondary), `danger` (red tint), `ghost`; sizes `default`, `sm`, `icon`, `icon-sm`. `pillButtonClasses()` styles links the same way. |
+| `pill-input.tsx`       | Fully rounded input with an optional leading icon. |
+| `badge.tsx`            | Uppercase, letter-spaced pill label; `brand` and `muted` tones. |
+
+List rows (people, projects) are bordered `rounded-2xl` rows on `bg-base`; the current item uses `border-brand/40 bg-accent-dim`. Destructive row actions are red icon-only pill buttons.
+
+Not yet applied: the Clerk sign-in/sign-up pages (`components/auth/auth-shell.tsx`, `lib/clerk-appearance.ts`).
 
 ## Layout Patterns
 

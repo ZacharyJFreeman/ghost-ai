@@ -1,18 +1,9 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
+import { clerkMiddleware } from "@clerk/nextjs/server"
 
-// API routes authenticate themselves so unauthenticated calls get a JSON 401
-// instead of a redirect or 404 from auth.protect().
-const isPublicRoute = createRouteMatcher([
-  "/api(.*)",
-  `${process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL}(.*)`,
-  `${process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL}(.*)`,
-])
-
-export default clerkMiddleware(async (auth, request) => {
-  if (!isPublicRoute(request)) {
-    await auth.protect()
-  }
-})
+// Runs Clerk so `auth()` / `currentUser()` work in server code. Route protection
+// is not done here: every page and route handler that needs a signed-in user
+// checks auth itself (pages redirect to the sign-in URL, API routes return 401).
+export default clerkMiddleware()
 
 export const config = {
   matcher: [

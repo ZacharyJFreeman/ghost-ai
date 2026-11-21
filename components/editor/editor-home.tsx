@@ -1,6 +1,6 @@
 import { Plus } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
+import { PillButton } from "@/components/app/pill-button"
 
 interface EditorHomeProps {
   onNewProject: () => void
@@ -15,10 +15,10 @@ export function EditorHome({ onNewProject }: EditorHomeProps) {
       <p className="max-w-md text-sm text-copy-muted">
         Start a new architecture workspace, or choose a project from the sidebar.
       </p>
-      <Button onClick={onNewProject}>
-        <Plus className="h-4 w-4" />
+      <PillButton onClick={onNewProject}>
+        <Plus />
         New Project
-      </Button>
+      </PillButton>
     </main>
   )
 }
