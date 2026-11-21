@@ -3,6 +3,8 @@
 import { useParams, useRouter } from "next/navigation"
 import { useCallback, useState } from "react"
 
+import { createProject, deleteProject, renameProject } from "@/lib/client/project-api"
+import { errorMessage } from "@/lib/client/request"
 import { buildRoomId, generateIdSuffix, slugify, type Project } from "@/lib/projects"
 
 export type ProjectDialogState =
@@ -10,24 +12,6 @@ export type ProjectDialogState =
   | { type: "create" }
   | { type: "rename"; project: Project }
   | { type: "delete"; project: Project }
-
-interface ApiResponse {
-  project?: { id: string }
-  error?: string
-}
-
-const GENERIC_ERROR = "Something went wrong. Please try again."
-
-async function request(url: string, method: string, body?: unknown): Promise<ApiResponse> {
-  const response = await fetch(url, {
-    method,
-    headers: body ? { "Content-Type": "application/json" } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
-  })
-  const data = (await response.json().catch(() => ({}))) as ApiResponse
-  if (!response.ok) throw new Error(data.error ?? GENERIC_ERROR)
-  return data
-}
 
 export function useProjectActions() {
   const router = useRouter()
@@ -77,25 +61,22 @@ export function useProjectActions() {
 
     try {
       if (dialog.type === "create") {
-        const { project } = await request("/api/projects", "POST", {
-          id: roomId,
-          name: trimmed,
-        })
+        const id = await createProject({ id: roomId, name: trimmed })
         close()
-        router.push(`/editor/${project?.id ?? roomId}`)
+        router.push(`/editor/${id}`)
       } else if (dialog.type === "rename") {
-        await request(`/api/projects/${dialog.project.id}`, "PATCH", { name: trimmed })
+        await renameProject(dialog.project.id, trimmed)
         close()
         router.refresh()
       } else {
         const { id } = dialog.project
-        await request(`/api/projects/${id}`, "DELETE")
+        await deleteProject(id)
         close()
         if (id === activeProjectId) router.push("/editor")
         else router.refresh()
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : GENERIC_ERROR)
+      setError(errorMessage(err))
       setIsLoading(false)
     }
   }, [isLoading, dialog, name, roomId, activeProjectId, router, close])
