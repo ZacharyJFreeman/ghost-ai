@@ -1,0 +1,58 @@
+"use client"
+
+import { ClientSideSuspense, LiveblocksProvider, RoomProvider } from "@liveblocks/react/suspense"
+import type { ReactNode } from "react"
+
+import { Panel } from "@/components/app/panel"
+import { PillButton } from "@/components/app/pill-button"
+import { CanvasErrorBoundary } from "@/components/editor/canvas-error-boundary"
+import { CanvasFlow } from "@/components/editor/canvas-flow"
+
+interface EditorCanvasProps {
+  roomId: string
+}
+
+function CanvasMessage({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex h-full items-center justify-center p-6">
+      <Panel className="flex flex-col items-center gap-3 text-center">{children}</Panel>
+    </div>
+  )
+}
+
+function CanvasLoading() {
+  return (
+    <CanvasMessage>
+      <p className="text-sm text-copy-muted">Loading canvas...</p>
+    </CanvasMessage>
+  )
+}
+
+function CanvasError() {
+  return (
+    <CanvasMessage>
+      <p className="text-sm text-copy-muted">
+        Couldn&apos;t connect to the canvas. Check your connection and try again.
+      </p>
+      <PillButton variant="dark" size="sm" onClick={() => window.location.reload()}>
+        Reload
+      </PillButton>
+    </CanvasMessage>
+  )
+}
+
+// Sets up the Liveblocks room for a project (the room ID is the project ID) and
+// renders the collaborative canvas inside it.
+export function EditorCanvas({ roomId }: EditorCanvasProps) {
+  return (
+    <LiveblocksProvider authEndpoint="/api/liveblocks-auth">
+      <RoomProvider id={roomId} initialPresence={{ cursor: null, isThinking: false }}>
+        <CanvasErrorBoundary fallback={<CanvasError />}>
+          <ClientSideSuspense fallback={<CanvasLoading />}>
+            <CanvasFlow />
+          </ClientSideSuspense>
+        </CanvasErrorBoundary>
+      </RoomProvider>
+    </LiveblocksProvider>
+  )
+}

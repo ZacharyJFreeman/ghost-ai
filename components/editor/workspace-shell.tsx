@@ -5,6 +5,7 @@ import { useState } from "react"
 
 import { Panel } from "@/components/app/panel"
 import { PillButton } from "@/components/app/pill-button"
+import { EditorCanvas } from "@/components/editor/editor-canvas"
 import { EditorNavbar } from "@/components/editor/editor-navbar"
 import { ProjectDialogs } from "@/components/editor/project-dialogs"
 import { ProjectSidebar } from "@/components/editor/project-sidebar"
@@ -51,9 +52,9 @@ export function WorkspaceShell({ project, ownedProjects, sharedProjects }: Works
       />
 
       <div className="flex min-h-0 flex-1">
-        <main className="flex min-w-0 flex-1 items-center justify-center bg-base p-6">
-          <div className="rounded-2xl border border-dashed border-surface-border px-8 py-10 text-center">
-            <p className="text-sm text-copy-muted">Canvas coming soon</p>
+        <main className="relative min-w-0 flex-1 bg-base">
+          <div className="absolute inset-0">
+            <EditorCanvas roomId={project.id} />
           </div>
         </main>
 

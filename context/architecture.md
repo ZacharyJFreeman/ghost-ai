@@ -19,6 +19,7 @@
 - `trigger` — Long-running background jobs: AI design generation and spec generation.
 - `lib` — Shared infrastructure: Prisma client, access control helpers, and utilities.
 - `lib/client` — Client-side API wrappers (`fetch` calls to `app/api`) used by hooks. Client-safe only: no server imports (Prisma, Clerk server SDK).
+- `types` — Shared TypeScript types and constants (e.g. `types/canvas.ts`: canvas node/edge types and the node color palette).
 - `liveblocks.config.ts` (project root) — Global Liveblocks `Presence` and `UserMeta` types.
 - `components` — UI composition: canvas surfaces, sidebars, dialogs, and interactive elements.
 - `hooks` — Client-side React hooks that own UI state (e.g. project dialog, form, and loading state). No data access or business rules.
