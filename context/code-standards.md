@@ -17,6 +17,7 @@
 ## Next.js
 
 - Default to React Server Components.
+- Server pages that need a signed-in user check auth themselves (e.g. `getCurrentIdentity()` in `lib/project-access.ts`) and redirect to `/sign-in`.
 - Add `"use client"` only when the component needs browser interactivity, hooks, or real-time state.
 - Keep route handlers focused on a single responsibility.
 - Long-running work belongs in background tasks, not in request handlers.
@@ -33,6 +34,7 @@
 - Enforce auth and project ownership checks before any mutation.
 - Return consistent, predictable response shapes.
 - Keep route handlers thin — push complexity into shared modules or background tasks.
+- Do not rely on `proxy.ts` for protection: each route handler authenticates itself and returns `401` when signed out.
 
 ## Data and Storage
 

@@ -18,6 +18,7 @@
 - `app/api` — Authenticated request handlers: input validation, ownership checks, task triggering, and persistence.
 - `trigger` — Long-running background jobs: AI design generation and spec generation.
 - `lib` — Shared infrastructure: Prisma client, access control helpers, and utilities.
+- `lib/client` — Client-side API wrappers (`fetch` calls to `app/api`) used by hooks. Client-safe only: no server imports (Prisma, Clerk server SDK).
 - `components` — UI composition: canvas surfaces, sidebars, dialogs, and interactive elements.
 - `hooks` — Client-side React hooks that own UI state (e.g. project dialog, form, and loading state). No data access or business rules.
 - `prisma` — Database schema and generated client output.
@@ -36,7 +37,11 @@
 - Every project has a single owner (Clerk user ID).
 - Projects can include additional collaborators.
 - Only authenticated users can access protected routes.
-- Only the owner or a collaborator can mutate project resources.
+- Route protection is resource-based, not path-based: `proxy.ts` only runs `clerkMiddleware()` so `auth()` works. Every page and route handler that needs a signed-in user checks auth itself — pages redirect to `/sign-in`, API routes return `401`. A new page or route that needs auth must add its own check.
+- Only the owner or a collaborator can mutate project resources. Rename, delete, invite, and remove are owner-only; collaborators can view the project and the collaborator list.
+- Collaborators are stored by email in `ProjectCollaborator` and matched to the signed-in user's primary Clerk email, case-insensitively. There is no local user table; display name and avatar come from the Clerk Backend API and fall back to the email when no Clerk user exists.
+- Workspace access (`/editor/[roomId]`) is checked server-side. Missing and unauthorized projects are indistinguishable and both show `AccessDenied`.
+- The project ID is also the Liveblocks room ID. It is the slugified project name plus a short unique suffix, generated on the client and validated and uniqueness-checked by `POST /api/projects` (the schema's `cuid()` default applies when no ID is sent).
 - Liveblocks room tokens are issued only after verifying project membership.
 
 ## Starter System Designs
