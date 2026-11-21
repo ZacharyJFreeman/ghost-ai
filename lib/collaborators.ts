@@ -1,6 +1,7 @@
 import { clerkClient } from "@clerk/nextjs/server"
 
 import { prisma } from "@/lib/prisma"
+import { displayName } from "@/lib/user-display"
 
 export interface Collaborator {
   id: string
@@ -73,10 +74,6 @@ export async function listCollaborators(projectId: string): Promise<Collaborator
     const profile = profiles.get(row.email.toLowerCase())
     return { ...row, name: profile?.name ?? null, imageUrl: profile?.imageUrl ?? null }
   })
-}
-
-function displayName(user: { firstName: string | null; lastName: string | null; username: string | null }) {
-  return [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || null
 }
 
 // Server-only: the project owner's Clerk profile, or empty fields if Clerk fails.
