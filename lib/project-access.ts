@@ -10,6 +10,7 @@ export interface CurrentIdentity {
 export interface ProjectAccess {
   id: string
   name: string
+  ownerId: string
   isOwner: boolean
 }
 
@@ -48,5 +49,10 @@ export async function getProjectAccess(
   })
 
   if (!project) return null
-  return { id: project.id, name: project.name, isOwner: project.ownerId === identity.userId }
+  return {
+    id: project.id,
+    name: project.name,
+    ownerId: project.ownerId,
+    isOwner: project.ownerId === identity.userId,
+  }
 }

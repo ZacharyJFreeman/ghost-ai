@@ -1,33 +1,31 @@
 import { request } from "@/lib/client/request"
-import type { Collaborator } from "@/lib/collaborators"
+import type { ShareData } from "@/lib/collaborators"
 
-interface CollaboratorsResponse {
-  collaborators?: Collaborator[]
-  error?: string
-}
+type ShareResponse = Partial<ShareData> & { error?: string }
 
 // Client-side wrappers for the collaborator API routes.
+
+const EMPTY_OWNER: ShareData["owner"] = { name: null, email: null, imageUrl: null }
 
 function basePath(projectId: string): string {
   return `/api/projects/${projectId}/collaborators`
 }
 
-export async function fetchCollaborators(projectId: string): Promise<Collaborator[]> {
-  const data = await request<CollaboratorsResponse>(basePath(projectId))
-  return data.collaborators ?? []
+function toShareData(data: ShareResponse): ShareData {
+  return { owner: data.owner ?? EMPTY_OWNER, collaborators: data.collaborators ?? [] }
 }
 
-export async function inviteCollaborator(
-  projectId: string,
-  email: string
-): Promise<Collaborator[]> {
-  const data = await request<CollaboratorsResponse>(basePath(projectId), "POST", { email })
-  return data.collaborators ?? []
+export async function fetchShareData(projectId: string): Promise<ShareData> {
+  return toShareData(await request<ShareResponse>(basePath(projectId)))
+}
+
+export async function inviteCollaborator(projectId: string, email: string): Promise<ShareData> {
+  return toShareData(await request<ShareResponse>(basePath(projectId), "POST", { email }))
 }
 
 export async function removeCollaborator(
   projectId: string,
   collaboratorId: string
 ): Promise<void> {
-  await request<CollaboratorsResponse>(`${basePath(projectId)}/${collaboratorId}`, "DELETE")
+  await request<ShareResponse>(`${basePath(projectId)}/${collaboratorId}`, "DELETE")
 }

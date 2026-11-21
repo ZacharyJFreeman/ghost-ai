@@ -23,7 +23,11 @@ async function Workspace({ params }: WorkspacePageProps) {
   const { owned, shared } = await getEditorProjects(identity.userId, identity.email)
 
   return (
-    <WorkspaceShell project={project} ownedProjects={owned} sharedProjects={shared} />
+    <WorkspaceShell
+      project={{ id: project.id, name: project.name, isOwner: project.isOwner }}
+      ownedProjects={owned}
+      sharedProjects={shared}
+    />
   )
 }
 

@@ -3,17 +3,18 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import {
-  fetchCollaborators,
+  fetchShareData,
   inviteCollaborator,
   removeCollaborator,
 } from "@/lib/client/collaborator-api"
 import { errorMessage } from "@/lib/client/request"
-import type { Collaborator } from "@/lib/collaborators"
+import type { Collaborator, ShareOwner } from "@/lib/collaborators"
 
 const COPIED_FEEDBACK_MS = 2000
 
 export function useShareDialog(projectId: string) {
   const [isOpen, setIsOpen] = useState(false)
+  const [owner, setOwner] = useState<ShareOwner | null>(null)
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isInviting, setIsInviting] = useState(false)
@@ -34,7 +35,9 @@ export function useShareDialog(projectId: string) {
     setError(null)
     setIsLoading(true)
     try {
-      setCollaborators(await fetchCollaborators(projectId))
+      const data = await fetchShareData(projectId)
+      setOwner(data.owner)
+      setCollaborators(data.collaborators)
     } catch (err) {
       setError(errorMessage(err))
     } finally {
@@ -53,7 +56,9 @@ export function useShareDialog(projectId: string) {
     setIsInviting(true)
     setError(null)
     try {
-      setCollaborators(await inviteCollaborator(projectId, email))
+      const data = await inviteCollaborator(projectId, email)
+      setOwner(data.owner)
+      setCollaborators(data.collaborators)
       setEmail("")
     } catch (err) {
       setError(errorMessage(err))
@@ -93,6 +98,7 @@ export function useShareDialog(projectId: string) {
 
   return {
     isOpen,
+    owner,
     collaborators,
     isLoading,
     isInviting,

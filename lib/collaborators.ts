@@ -9,6 +9,17 @@ export interface Collaborator {
   imageUrl: string | null
 }
 
+export interface ShareOwner {
+  name: string | null
+  email: string | null
+  imageUrl: string | null
+}
+
+export interface ShareData {
+  owner: ShareOwner
+  collaborators: Collaborator[]
+}
+
 interface ClerkProfile {
   name: string | null
   imageUrl: string | null
@@ -32,8 +43,7 @@ async function getClerkProfiles(emails: string[]): Promise<Map<string, ClerkProf
 
     for (const user of users) {
       const profile: ClerkProfile = {
-        name:
-          [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || null,
+        name: displayName(user),
         imageUrl: user.imageUrl || null,
       }
       // The Clerk filter is a partial match, so key by each exact address.
@@ -63,4 +73,32 @@ export async function listCollaborators(projectId: string): Promise<Collaborator
     const profile = profiles.get(row.email.toLowerCase())
     return { ...row, name: profile?.name ?? null, imageUrl: profile?.imageUrl ?? null }
   })
+}
+
+function displayName(user: { firstName: string | null; lastName: string | null; username: string | null }) {
+  return [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || null
+}
+
+// Server-only: the project owner's Clerk profile, or empty fields if Clerk fails.
+async function getOwnerProfile(ownerId: string): Promise<ShareOwner> {
+  try {
+    const client = await clerkClient()
+    const user = await client.users.getUser(ownerId)
+    return {
+      name: displayName(user),
+      email: user.primaryEmailAddress?.emailAddress ?? user.emailAddresses[0]?.emailAddress ?? null,
+      imageUrl: user.imageUrl || null,
+    }
+  } catch {
+    return { name: null, email: null, imageUrl: null }
+  }
+}
+
+// Server-only: everything the share dialog lists — the owner plus collaborators.
+export async function getShareData(projectId: string, ownerId: string): Promise<ShareData> {
+  const [owner, collaborators] = await Promise.all([
+    getOwnerProfile(ownerId),
+    listCollaborators(projectId),
+  ])
+  return { owner, collaborators }
 }
