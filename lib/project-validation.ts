@@ -47,3 +47,21 @@ export function parseRenameName(body: unknown): NameResult {
   }
   return { ok: true, name: name.trim() }
 }
+
+const MAX_EMAIL_LENGTH = 254
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+type EmailResult = { ok: true; email: string } | { ok: false; error: string }
+
+// Invite: a valid email address, normalized to lowercase.
+export function parseInviteEmail(body: unknown): EmailResult {
+  const email =
+    body && typeof body === "object" ? (body as { email?: unknown }).email : undefined
+  if (typeof email !== "string") return { ok: false, error: "email must be a string" }
+
+  const normalized = email.trim().toLowerCase()
+  if (normalized.length > MAX_EMAIL_LENGTH || !EMAIL_PATTERN.test(normalized)) {
+    return { ok: false, error: "Enter a valid email address" }
+  }
+  return { ok: true, email: normalized }
+}
