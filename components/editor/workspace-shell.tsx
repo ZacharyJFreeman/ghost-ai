@@ -5,6 +5,7 @@ import { useState } from "react"
 
 import { Panel } from "@/components/app/panel"
 import { PillButton } from "@/components/app/pill-button"
+import { EditorCanvas } from "@/components/editor/editor-canvas"
 import { EditorNavbar } from "@/components/editor/editor-navbar"
 import { ProjectDialogs } from "@/components/editor/project-dialogs"
 import { ProjectSidebar } from "@/components/editor/project-sidebar"
@@ -12,6 +13,7 @@ import { ShareDialog } from "@/components/editor/share-dialog"
 import { useProjectActions } from "@/hooks/use-project-actions"
 import { useShareDialog } from "@/hooks/use-share-dialog"
 import type { Project } from "@/lib/projects"
+import { cn } from "@/lib/utils"
 
 interface WorkspaceShellProps {
   project: Project
@@ -51,22 +53,32 @@ export function WorkspaceShell({ project, ownedProjects, sharedProjects }: Works
       />
 
       <div className="flex min-h-0 flex-1">
-        <main className="flex min-w-0 flex-1 items-center justify-center bg-base p-6">
-          <div className="rounded-2xl border border-dashed border-surface-border px-8 py-10 text-center">
-            <p className="text-sm text-copy-muted">Canvas coming soon</p>
+        <main className="relative min-w-0 flex-1 bg-base">
+          <div className="absolute inset-0">
+            <EditorCanvas roomId={project.id} />
           </div>
         </main>
 
-        {isAiOpen && (
+        <div
+          className={cn(
+            "hidden shrink-0 overflow-hidden transition-[width] duration-200 ease-out md:block",
+            isAiOpen ? "w-80" : "w-0"
+          )}
+        >
           <aside
             aria-label="AI chat"
-            className="hidden w-80 shrink-0 flex-col justify-center border-l border-surface-border bg-surface p-4 md:flex"
+            aria-hidden={!isAiOpen}
+            inert={!isAiOpen}
+            className={cn(
+              "flex h-full w-80 flex-col justify-center border-l border-surface-border bg-surface p-4 transition-transform duration-200 ease-out",
+              isAiOpen ? "translate-x-0" : "translate-x-full"
+            )}
           >
             <Panel className="text-center">
               <p className="text-sm text-copy-muted">AI chat coming soon</p>
             </Panel>
           </aside>
-        )}
+        </div>
       </div>
 
       <ProjectSidebar

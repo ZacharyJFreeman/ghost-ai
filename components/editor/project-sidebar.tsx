@@ -99,7 +99,7 @@ export function ProjectSidebar({
       aria-hidden="true"
       onClick={onClose}
       className={cn(
-        "fixed inset-0 z-30 bg-background/70 transition-opacity duration-200 md:hidden",
+        "fixed inset-x-0 bottom-0 top-12 z-30 bg-background/70 transition-opacity duration-200 md:hidden",
         isOpen ? "opacity-100" : "pointer-events-none opacity-0"
       )}
     />
@@ -108,7 +108,7 @@ export function ProjectSidebar({
       aria-hidden={!isOpen}
       inert={!isOpen}
       className={cn(
-        "fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-surface-border bg-surface shadow-2xl transition-transform duration-200 ease-out",
+        "fixed bottom-0 left-0 top-12 z-40 flex w-72 flex-col border-r border-surface-border bg-surface shadow-2xl transition-transform duration-200 ease-out",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}
     >
