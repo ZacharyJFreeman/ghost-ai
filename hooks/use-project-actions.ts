@@ -4,7 +4,9 @@ import { useParams, useRouter } from "next/navigation"
 import { useCallback, useState } from "react"
 
 import { createProject, deleteProject, renameProject } from "@/lib/client/project-api"
+import type { CanvasTemplate } from "@/components/editor/starter-templates"
 import { errorMessage } from "@/lib/client/request"
+import { setPendingTemplate } from "@/lib/pending-template"
 import { buildRoomId, generateIdSuffix, slugify, type Project } from "@/lib/projects"
 
 export type ProjectDialogState =
@@ -20,6 +22,8 @@ export function useProjectActions() {
   const [dialog, setDialog] = useState<ProjectDialogState>({ type: "closed" })
   const [name, setName] = useState("")
   const [suffix, setSuffix] = useState("")
+  const [template, setTemplate] = useState<CanvasTemplate | null>(null)
+  const [templatesOpen, setTemplatesOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -31,6 +35,8 @@ export function useProjectActions() {
     setName("")
     setError(null)
     setIsLoading(false)
+    setTemplate(null)
+    setTemplatesOpen(false)
   }, [])
 
   const openCreate = useCallback(() => {
@@ -62,6 +68,7 @@ export function useProjectActions() {
     try {
       if (dialog.type === "create") {
         const id = await createProject({ id: roomId, name: trimmed })
+        if (template) setPendingTemplate(id, template.id)
         close()
         router.push(`/editor/${id}`)
       } else if (dialog.type === "rename") {
@@ -79,7 +86,7 @@ export function useProjectActions() {
       setError(errorMessage(err))
       setIsLoading(false)
     }
-  }, [isLoading, dialog, name, roomId, activeProjectId, router, close])
+  }, [isLoading, dialog, name, roomId, template, activeProjectId, router, close])
 
   return {
     dialog,
@@ -87,6 +94,10 @@ export function useProjectActions() {
     setName,
     slug,
     roomId,
+    template,
+    setTemplate,
+    templatesOpen,
+    setTemplatesOpen,
     isLoading,
     error,
     openCreate,

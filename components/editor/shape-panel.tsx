@@ -1,7 +1,7 @@
 "use client"
 
 import { Circle, Cylinder, Diamond, Hexagon, RectangleHorizontal, Square } from "lucide-react"
-import { useEffect, useState, type DragEvent } from "react"
+import { useEffect, useState, type DragEvent, type ReactNode } from "react"
 
 import { ShapeView } from "@/components/editor/shape-view"
 import { cn } from "@/lib/utils"
@@ -37,12 +37,14 @@ function getEmptyDragImage() {
 interface ShapePanelProps {
   selected: CanvasShape | null
   onSelect: (shape: CanvasShape | null) => void
+  // Extra controls shown after the shapes, behind a divider.
+  children?: ReactNode
 }
 
 // Floating pill toolbar at the bottom-center of the screen. Each button can be
 // dragged onto the canvas (with a ghost preview), or clicked to highlight it so
 // the next canvas click places the shape.
-export function ShapePanel({ selected, onSelect }: ShapePanelProps) {
+export function ShapePanel({ selected, onSelect, children }: ShapePanelProps) {
   const [dragging, setDragging] = useState<CanvasShape | null>(null)
   const [pointer, setPointer] = useState<{ x: number; y: number } | null>(null)
 
@@ -102,6 +104,7 @@ export function ShapePanel({ selected, onSelect }: ShapePanelProps) {
               </button>
             )
           })}
+          {children}
         </div>
       </div>
 

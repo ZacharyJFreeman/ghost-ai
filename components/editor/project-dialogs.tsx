@@ -1,9 +1,12 @@
+import { LayoutTemplate, X } from "lucide-react"
 import type { FormEvent } from "react"
 
 import { AppDialog } from "@/components/app/app-dialog"
 import { Panel } from "@/components/app/panel"
 import { PillButton } from "@/components/app/pill-button"
 import { PillInput } from "@/components/app/pill-input"
+import { StarterTemplatesModal } from "@/components/editor/starter-templates-modal"
+import type { CanvasTemplate } from "@/components/editor/starter-templates"
 import type { ProjectDialogState } from "@/hooks/use-project-actions"
 
 interface ProjectDialogsProps {
@@ -12,6 +15,10 @@ interface ProjectDialogsProps {
   setName: (name: string) => void
   slug: string
   roomId: string
+  template: CanvasTemplate | null
+  setTemplate: (template: CanvasTemplate | null) => void
+  templatesOpen: boolean
+  setTemplatesOpen: (open: boolean) => void
   isLoading: boolean
   error: string | null
   close: () => void
@@ -36,6 +43,10 @@ export function ProjectDialogs({
   setName,
   slug,
   roomId,
+  template,
+  setTemplate,
+  templatesOpen,
+  setTemplatesOpen,
   isLoading,
   error,
   close,
@@ -89,10 +100,46 @@ export function ProjectDialogs({
               Room ID: <span className="font-mono text-copy-secondary">{roomId || "—"}</span>
             </p>
           </Panel>
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-surface-border bg-base px-4 py-3">
+            <div className="grid min-w-0 gap-0.5">
+              <span className="text-sm font-medium text-copy-secondary">Starter template</span>
+              <span className="truncate text-xs text-copy-muted">
+                {template ? template.name : "Start blank, or from a pre-built diagram."}
+              </span>
+            </div>
+            <div className="flex shrink-0 items-center gap-1">
+              {template && (
+                <PillButton
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Remove template"
+                  onClick={() => setTemplate(null)}
+                  disabled={isLoading}
+                >
+                  <X />
+                </PillButton>
+              )}
+              <PillButton
+                variant="dark"
+                size="sm"
+                onClick={() => setTemplatesOpen(true)}
+                disabled={isLoading}
+              >
+                <LayoutTemplate />
+                {template ? "Change" : "Browse"}
+              </PillButton>
+            </div>
+          </div>
           {hasInvalidSlug && <SlugError />}
           {error && <ErrorMessage message={error} />}
         </form>
       </AppDialog>
+
+      <StarterTemplatesModal
+        open={templatesOpen}
+        onOpenChange={setTemplatesOpen}
+        onImport={setTemplate}
+      />
 
       <AppDialog
         open={dialog.type === "rename"}

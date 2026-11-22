@@ -2,6 +2,7 @@
 
 import "@xyflow/react/dist/style.css"
 
+import { useCanRedo, useCanUndo, useRedo, useRoom, useUndo } from "@liveblocks/react"
 import { useLiveblocksFlow } from "@liveblocks/react-flow"
 import {
   Background,
@@ -11,10 +12,15 @@ import {
   ReactFlow,
   type ReactFlowInstance,
 } from "@xyflow/react"
+import { ChevronDown, ChevronUp } from "lucide-react"
 import { useCallback, useEffect, useRef, useState, type DragEvent, type MouseEvent } from "react"
 
+import { CanvasControls } from "@/components/editor/canvas-controls"
 import { CanvasNodeView } from "@/components/editor/canvas-node"
 import { ShapePanel } from "@/components/editor/shape-panel"
+import { CANVAS_TEMPLATES } from "@/components/editor/starter-templates"
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
+import { takePendingTemplate } from "@/lib/pending-template"
 import {
   CANVAS_SHAPES,
   DEFAULT_NODE_COLOR,
@@ -58,6 +64,28 @@ export function CanvasFlow() {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const nodeCounter = useRef(0)
   const [selectedShape, setSelectedShape] = useState<CanvasShape | null>(null)
+  const [flow, setFlow] = useState<ReactFlowInstance<CanvasNode, CanvasEdge> | null>(null)
+  const [miniMapOpen, setMiniMapOpen] = useState(true)
+
+  const undo = useUndo()
+  const redo = useRedo()
+  const canUndo = useCanUndo()
+  const canRedo = useCanRedo()
+
+  useKeyboardShortcuts({ flow, undo, redo })
+
+  // A template picked in the create-project dialog is added once, to a canvas
+  // that is still empty, then the view is fitted to it.
+  const roomId = useRoom().id
+  useEffect(() => {
+    if (!flow) return
+    const templateId = takePendingTemplate(roomId)
+    const template = CANVAS_TEMPLATES.find((item) => item.id === templateId)
+    if (!template || flow.getNodes().length > 0) return
+    onNodesChange(template.nodes.map((item) => ({ type: "add", item })))
+    onEdgesChange(template.edges.map((item) => ({ type: "add", item })))
+    requestAnimationFrame(() => void flow.fitView({ duration: 200 }))
+  }, [flow, roomId, onNodesChange, onEdgesChange])
 
   const addShapeNode = useCallback(
     (payload: ShapeDragPayload, clientX: number, clientY: number) => {
@@ -101,7 +129,7 @@ export function CanvasFlow() {
     (event: MouseEvent) => {
       if (!selectedShape) return
       const target = event.target as Element
-      if (target.closest("[data-shape-panel], .react-flow__minimap")) return
+      if (target.closest("[data-shape-panel], [data-canvas-control], .react-flow__minimap")) return
       addShapeNode(
         { shape: selectedShape, ...DEFAULT_SHAPE_SIZES[selectedShape] },
         event.clientX,
@@ -136,6 +164,7 @@ export function CanvasFlow() {
         nodeTypes={nodeTypes}
         onInit={(instance) => {
           flowRef.current = instance
+          setFlow(instance)
         }}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
@@ -147,14 +176,38 @@ export function CanvasFlow() {
         style={{ backgroundColor: "var(--bg-base)" }}
       >
         <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="var(--border-subtle)" />
-        <MiniMap
-          pannable
-          zoomable
-          style={{ backgroundColor: "var(--bg-surface)" }}
-          maskColor="color-mix(in srgb, var(--bg-base) 70%, transparent)"
-        />
+        {miniMapOpen && (
+          <MiniMap
+            pannable
+            zoomable
+            style={{ backgroundColor: "var(--bg-surface)" }}
+            maskColor="color-mix(in srgb, var(--bg-base) 70%, transparent)"
+          />
+        )}
       </ReactFlow>
-      <ShapePanel selected={selectedShape} onSelect={setSelectedShape} />
+      <button
+        type="button"
+        data-canvas-control
+        title={miniMapOpen ? "Collapse mini map" : "Show mini map"}
+        aria-label={miniMapOpen ? "Collapse mini map" : "Show mini map"}
+        onClick={() => setMiniMapOpen((open) => !open)}
+        className={`absolute right-4 z-10 flex size-8 cursor-pointer items-center justify-center rounded-full border border-border bg-surface text-muted-foreground shadow-lg transition-colors hover:bg-accent-dim hover:text-foreground ${
+          miniMapOpen ? "bottom-[178px]" : "bottom-4"
+        }`}
+      >
+        {miniMapOpen ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />}
+      </button>
+      <ShapePanel selected={selectedShape} onSelect={setSelectedShape}>
+        <CanvasControls
+          onZoomIn={() => void flow?.zoomIn({ duration: 200 })}
+          onZoomOut={() => void flow?.zoomOut({ duration: 200 })}
+          onFitView={() => void flow?.fitView({ duration: 200 })}
+          onUndo={undo}
+          onRedo={redo}
+          canUndo={canUndo}
+          canRedo={canRedo}
+        />
+      </ShapePanel>
     </div>
   )
 }
