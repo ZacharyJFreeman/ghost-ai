@@ -1,6 +1,6 @@
 import type { Edge, Node } from "@xyflow/react"
 
-export const CANVAS_SHAPES = ["rectangle", "circle", "diamond", "cylinder"] as const
+export const CANVAS_SHAPES = ["rectangle", "diamond", "circle", "pill", "cylinder", "hexagon"] as const
 
 export type CanvasShape = (typeof CANVAS_SHAPES)[number]
 
@@ -34,3 +34,28 @@ export type CanvasNodeData = {
 export type CanvasNode = Node<CanvasNodeData, "canvasNode">
 
 export type CanvasEdge = Edge<Record<string, unknown>, "canvasEdge">
+
+export interface ShapeSize {
+  width: number
+  height: number
+}
+
+// Default node size per shape: rectangles are wider than tall, circles are
+// square, and diamonds are larger so labels have room.
+export const DEFAULT_SHAPE_SIZES: Record<CanvasShape, ShapeSize> = {
+  rectangle: { width: 160, height: 80 },
+  diamond: { width: 140, height: 140 },
+  circle: { width: 100, height: 100 },
+  pill: { width: 160, height: 64 },
+  cylinder: { width: 120, height: 120 },
+  hexagon: { width: 140, height: 120 },
+}
+
+// The payload carried by a shape dragged from the shape panel.
+export interface ShapeDragPayload {
+  shape: CanvasShape
+  width: number
+  height: number
+}
+
+export const SHAPE_DRAG_MIME = "application/x-ghost-ai-shape"

@@ -8,7 +8,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Goal
 
-- 11 Base Canvas — implemented and pushed to `development`; waiting on signed-in browser verification (see Next Up).
+- 12 Shape Panel — implemented (not committed); needs signed-in browser verification. 11 Base Canvas is implemented and pushed; waiting on signed-in browser verification (see Next Up).
 
 ## Status Key
 
@@ -32,6 +32,7 @@ Every unit below is implemented and pushed to `development`; none is browser-ver
 - **App-wide restyle** (matches the share window): `components/app/` (`app-dialog`, `panel`, `pill-button`, `pill-input`, `badge`) applied to the share and project dialogs, sidebar, navbar, editor home, `AccessDenied`, and workspace; `components/ui/*` untouched. The share list shows the owner row and "N total"; the collaborators API returns `{ owner, collaborators }`. The Clerk sign-in/sign-up pages were left as they are.
 - **10 Liveblocks Setup**: `liveblocks.config.ts` (`Presence`: cursor + `isThinking`; `UserMeta`: id + `info { name, avatar, color }`); cached lazy node client in `lib/liveblocks.ts`; `getCursorColor` in `lib/cursor-color.ts`; `POST /api/liveblocks-auth` (Clerk auth → project access `403` → create the private room only if needed → session token with name, avatar, color). Reads `LIVEBLOCKS_SECRET_KEY` from `.env.local` (now set).
 - **11 Base Canvas**: `EditorCanvas` (`LiveblocksProvider`, `RoomProvider` with the project ID, `ClientSideSuspense`, error boundary with Reload) wrapping `CanvasFlow` (`useLiveblocksFlow` with suspense and empty initial state; `ReactFlow` with loose connections, `fitView`, `MiniMap`, dot background); `types/canvas.ts` (node/edge types, shapes, `NODE_COLORS`). No controls, custom rendering, persistence, or AI, per the scope limits.
+- **12 Shape Panel**: `components/editor/shape-panel.tsx` (floating bottom-center pill toolbar; six draggable icon buttons with the shape and default size in the drag payload); `CanvasFlow` wraps `ReactFlow` in a div with `dragover`/`drop` handling (payload validated, `screenToFlowPosition`, node added through `onNodesChange` so it syncs via Liveblocks; empty label, default color, ID `shape-timestamp-counter`); `components/editor/canvas-node.tsx` registered as `canvasNode`, rendering every shape as a bordered rectangle with a centered label. `types/canvas.ts` gains `pill` and `hexagon`, `DEFAULT_SHAPE_SIZES`, `ShapeDragPayload`, `SHAPE_DRAG_MIME`.
 
 ### Fixes and cleanups
 
@@ -77,6 +78,7 @@ Checks that have run:
 - **09**: invite emails are stored lowercase (own email → `400`, duplicate → `409`); invitees need no Clerk account; the copy-link button is owner-only; the list loads when the dialog opens; Clerk enrichment covers only the first 100 collaborators; avatars use a plain `<img>`; no invitation email is sent.
 - **10**: `LIVEBLOCKS_SECRET_KEY` lives in `.env.local` (set; the Liveblocks API accepts it, but no token or room has been created yet); the public key is stored as `NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY` but nothing reads it yet, because the app authenticates through `/api/liveblocks-auth` with the secret key; rooms are private (`defaultAccesses: []`); the cursor palette reuses the node text colors; missing and unauthorized projects both return `403`; a missing avatar becomes `""` and a missing name falls back to the email, then `Anonymous`; the route reads `{ room }` from the body; `UserMeta.id` is the Clerk user ID.
 - **11**: `CANVAS_SHAPES` is `rectangle`, `circle`, `diamond`, `cylinder` (the spec gives none); `color` stores the node fill and its text color is looked up from the pair; the `canvasNode`/`canvasEdge` types are declared but not registered as `nodeTypes`/`edgeTypes`; the default edge style is not applied; the error boundary is a small custom class; the canvas imports React Flow's stylesheet with `colorMode="dark"` and CSS-variable overrides; the `Cursors` component is not rendered; React Flow attribution is left at its default; initial presence also sets `isThinking: false` because the type requires it.
+- **12**: the spec gives sizes for rectangle, circle and diamond only; pill (160x64), cylinder (120x120) and hexagon (140x120) are my choices. The drop position is the node's top-left corner (not centered). Nodes get four loose-mode handles (top/right/bottom/left). The drag payload uses a custom MIME type, and drops without it are ignored. `canvasEdge` is still unregistered.
 
 ## Architecture Decisions
 
