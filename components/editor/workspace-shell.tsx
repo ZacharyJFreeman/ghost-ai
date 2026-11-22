@@ -13,6 +13,7 @@ import { ShareDialog } from "@/components/editor/share-dialog"
 import { useProjectActions } from "@/hooks/use-project-actions"
 import { useShareDialog } from "@/hooks/use-share-dialog"
 import type { Project } from "@/lib/projects"
+import { cn } from "@/lib/utils"
 
 interface WorkspaceShellProps {
   project: Project
@@ -58,16 +59,26 @@ export function WorkspaceShell({ project, ownedProjects, sharedProjects }: Works
           </div>
         </main>
 
-        {isAiOpen && (
+        <div
+          className={cn(
+            "hidden shrink-0 overflow-hidden transition-[width] duration-200 ease-out md:block",
+            isAiOpen ? "w-80" : "w-0"
+          )}
+        >
           <aside
             aria-label="AI chat"
-            className="hidden w-80 shrink-0 flex-col justify-center border-l border-surface-border bg-surface p-4 md:flex"
+            aria-hidden={!isAiOpen}
+            inert={!isAiOpen}
+            className={cn(
+              "flex h-full w-80 flex-col justify-center border-l border-surface-border bg-surface p-4 transition-transform duration-200 ease-out",
+              isAiOpen ? "translate-x-0" : "translate-x-full"
+            )}
           >
             <Panel className="text-center">
               <p className="text-sm text-copy-muted">AI chat coming soon</p>
             </Panel>
           </aside>
-        )}
+        </div>
       </div>
 
       <ProjectSidebar
