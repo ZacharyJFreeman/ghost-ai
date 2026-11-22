@@ -1,63 +1,84 @@
 "use client"
 
-import { Handle, Position, type NodeProps } from "@xyflow/react"
+import { Handle, NodeResizer, Position, useReactFlow, type NodeProps } from "@xyflow/react"
+import { useEffect, useRef, useState } from "react"
 
-import { NODE_COLORS, type CanvasNode, type CanvasShape } from "@/types/canvas"
+import { ShapeView } from "@/components/editor/shape-view"
+import { NODE_COLORS, type CanvasNode } from "@/types/canvas"
 
-// Shapes drawn as an SVG outline stretched to the size of the node (viewBox 100x100).
-const SVG_SHAPES: Partial<Record<CanvasShape, string[]>> = {
-  diamond: ["M50,0 L100,50 L50,100 L0,50 Z"],
-  hexagon: ["M25,0 L75,0 L100,50 L75,100 L25,100 L0,50 Z"],
-  cylinder: [
-    "M0,12 A50,12 0 0 1 100,12 L100,88 A50,12 0 0 1 0,88 Z",
-    "M0,12 A50,12 0 0 0 100,12",
-  ],
-}
+const MIN_NODE_WIDTH = 60
+const MIN_NODE_HEIGHT = 40
+const LABEL_PLACEHOLDER = "Label"
 
-// Shapes drawn with a bordered div and a corner radius.
-const BOX_RADIUS: Partial<Record<CanvasShape, string>> = {
-  rectangle: "0.375rem",
-  circle: "9999px",
-  pill: "9999px",
-}
+// Renders the node's shape from the synced node data, with side handles, resize
+// handles when selected, and an inline label editor. Every change goes through
+// React Flow's node updates, which the Liveblocks hook syncs to the room.
+export function CanvasNodeView({ id, data, selected }: NodeProps<CanvasNode>) {
+  const { updateNodeData } = useReactFlow<CanvasNode>()
+  const [isEditing, setIsEditing] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-export function CanvasNodeView({ data }: NodeProps<CanvasNode>) {
   const text = NODE_COLORS.find((pair) => pair.fill === data.color)?.text ?? NODE_COLORS[0].text
-  const paths = SVG_SHAPES[data.shape]
+
+  useEffect(() => {
+    if (!isEditing) return
+    const textarea = textareaRef.current
+    textarea?.focus()
+    textarea?.setSelectionRange(textarea.value.length, textarea.value.length)
+  }, [isEditing])
+
+  // The mirror text sizes the label box, so the textarea overlay never shifts the layout.
+  const mirror = (isEditing ? data.label : data.label || LABEL_PLACEHOLDER) + "​"
 
   return (
-    <div
-      className="relative flex size-full items-center justify-center px-3 text-center text-sm"
-      style={
-        paths
-          ? { color: text }
-          : {
-              color: text,
-              backgroundColor: data.color,
-              border: `1px solid ${text}`,
-              borderRadius: BOX_RADIUS[data.shape],
-            }
-      }
-    >
-      {paths && (
-        <svg
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          className="pointer-events-none absolute inset-0 size-full overflow-visible"
+    <div className="size-full">
+      <NodeResizer
+        isVisible={selected}
+        minWidth={MIN_NODE_WIDTH}
+        minHeight={MIN_NODE_HEIGHT}
+        handleStyle={{
+          width: 8,
+          height: 8,
+          borderRadius: 2,
+          backgroundColor: text,
+          border: "none",
+        }}
+        lineStyle={{ borderColor: `color-mix(in srgb, ${text} 45%, transparent)` }}
+      />
+      <ShapeView shape={data.shape} color={data.color} selected={selected} />
+
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-3">
+        <div
+          className="nopan pointer-events-auto relative min-w-12 max-w-full cursor-text text-center text-sm"
+          style={{ color: text }}
+          onDoubleClick={() => setIsEditing(true)}
         >
-          {paths.map((d, index) => (
-            <path
-              key={d}
-              d={d}
-              fill={index === 0 ? data.color : "none"}
-              stroke={text}
-              strokeWidth={1}
-              vectorEffect="non-scaling-stroke"
+          <span
+            className={`block whitespace-pre-wrap break-words ${
+              isEditing ? "invisible" : data.label ? "" : "opacity-40"
+            }`}
+          >
+            {mirror}
+          </span>
+          {isEditing && (
+            <textarea
+              ref={textareaRef}
+              value={data.label}
+              rows={1}
+              placeholder={LABEL_PLACEHOLDER}
+              onChange={(event) => updateNodeData(id, { label: event.target.value })}
+              onBlur={() => setIsEditing(false)}
+              onKeyDown={(event) => {
+                event.stopPropagation()
+                if (event.key === "Escape") setIsEditing(false)
+              }}
+              className="nodrag nopan nowheel absolute inset-0 size-full resize-none overflow-hidden border-0 bg-transparent p-0 text-center text-sm leading-[inherit] outline-none placeholder:opacity-40"
+              style={{ color: text }}
             />
-          ))}
-        </svg>
-      )}
-      <span className="relative">{data.label}</span>
+          )}
+        </div>
+      </div>
+
       <Handle type="source" position={Position.Top} id="top" />
       <Handle type="source" position={Position.Right} id="right" />
       <Handle type="source" position={Position.Bottom} id="bottom" />
