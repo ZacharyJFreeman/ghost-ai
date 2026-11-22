@@ -7,6 +7,7 @@ import { Panel } from "@/components/app/panel"
 import { PillButton } from "@/components/app/pill-button"
 import { CanvasErrorBoundary } from "@/components/editor/canvas-error-boundary"
 import { CanvasFlow } from "@/components/editor/canvas-flow"
+import { PresenceAvatars } from "@/components/editor/presence-avatars"
 
 interface EditorCanvasProps {
   roomId: string
@@ -47,6 +48,7 @@ export function EditorCanvas({ roomId }: EditorCanvasProps) {
   return (
     <LiveblocksProvider authEndpoint="/api/liveblocks-auth">
       <RoomProvider id={roomId} initialPresence={{ cursor: null, isThinking: false }}>
+        <PresenceAvatars />
         <CanvasErrorBoundary fallback={<CanvasError />}>
           <ClientSideSuspense fallback={<CanvasLoading />}>
             <CanvasFlow />

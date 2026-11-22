@@ -33,6 +33,7 @@ export function WorkspaceShell({ project, ownedProjects, sharedProjects }: Works
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen((open) => !open)}
         title={project.name}
+        showUserMenu={false}
         actions={
           <>
             <PillButton variant="dark" size="sm" onClick={() => void share.open()}>

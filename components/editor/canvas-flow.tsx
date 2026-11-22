@@ -2,7 +2,7 @@
 
 import "@xyflow/react/dist/style.css"
 
-import { useCanRedo, useCanUndo, useRedo, useRoom, useUndo } from "@liveblocks/react"
+import { useCanRedo, useCanUndo, useRedo, useRoom, useUndo, useUpdateMyPresence } from "@liveblocks/react"
 import { useLiveblocksFlow } from "@liveblocks/react-flow"
 import {
   Background,
@@ -17,6 +17,7 @@ import { useCallback, useEffect, useRef, useState, type DragEvent, type MouseEve
 
 import { CanvasControls } from "@/components/editor/canvas-controls"
 import { CanvasNodeView } from "@/components/editor/canvas-node"
+import { LiveCursors } from "@/components/editor/live-cursors"
 import { ShapePanel } from "@/components/editor/shape-panel"
 import { CANVAS_TEMPLATES } from "@/components/editor/starter-templates"
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
@@ -71,6 +72,7 @@ export function CanvasFlow() {
   const redo = useRedo()
   const canUndo = useCanUndo()
   const canRedo = useCanRedo()
+  const updateMyPresence = useUpdateMyPresence()
 
   useKeyboardShortcuts({ flow, undo, redo })
 
@@ -170,12 +172,18 @@ export function CanvasFlow() {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onDelete={onDelete}
+        onMouseMove={(event) => {
+          const position = flowRef.current?.screenToFlowPosition({ x: event.clientX, y: event.clientY })
+          if (position) updateMyPresence({ cursor: position })
+        }}
+        onMouseLeave={() => updateMyPresence({ cursor: null })}
         connectionMode={ConnectionMode.Loose}
         colorMode="dark"
         fitView
         style={{ backgroundColor: "var(--bg-base)" }}
       >
         <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="var(--border-subtle)" />
+        <LiveCursors />
         {miniMapOpen && (
           <MiniMap
             pannable
