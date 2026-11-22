@@ -3,6 +3,7 @@
 import { Handle, NodeResizer, Position, useReactFlow, type NodeProps } from "@xyflow/react"
 import { useEffect, useRef, useState } from "react"
 
+import { NodeColorToolbar } from "@/components/editor/node-color-toolbar"
 import { ShapeView } from "@/components/editor/shape-view"
 import { NODE_COLORS, type CanvasNode } from "@/types/canvas"
 
@@ -44,6 +45,11 @@ export function CanvasNodeView({ id, data, selected }: NodeProps<CanvasNode>) {
           border: "none",
         }}
         lineStyle={{ borderColor: `color-mix(in srgb, ${text} 45%, transparent)` }}
+      />
+      <NodeColorToolbar
+        selected={selected}
+        activeColor={data.color}
+        onSelect={(fill) => updateNodeData(id, { color: fill })}
       />
       <ShapeView shape={data.shape} color={data.color} selected={selected} />
 
