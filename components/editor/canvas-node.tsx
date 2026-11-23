@@ -1,10 +1,11 @@
 "use client"
 
-import { Handle, NodeResizer, Position, useReactFlow, type NodeProps } from "@xyflow/react"
+import { Handle, NodeResizer, Position, useReactFlow, useStore, type NodeProps } from "@xyflow/react"
 import { useEffect, useRef, useState } from "react"
 
 import { NodeColorToolbar } from "@/components/editor/node-color-toolbar"
 import { ShapeView } from "@/components/editor/shape-view"
+import { onNodeEditRequest } from "@/lib/canvas-edit-request"
 import { NODE_COLORS, type CanvasNode } from "@/types/canvas"
 
 const MIN_NODE_WIDTH = 60
@@ -19,7 +20,17 @@ export function CanvasNodeView({ id, data, selected }: NodeProps<CanvasNode>) {
   const [isEditing, setIsEditing] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
+  // The color toolbar and resize handles belong to a single selected shape. The
+  // selector returns a boolean, so a node re-renders only when this flips.
+  const inMultiSelection = useStore(
+    (state) => state.nodes.reduce((count, node) => count + (node.selected ? 1 : 0), 0) > 1,
+  )
+  const showControls = selected && !inMultiSelection
+
   const text = NODE_COLORS.find((pair) => pair.fill === data.color)?.text ?? NODE_COLORS[0].text
+
+  // The Enter shortcut asks the one selected node to start editing its label.
+  useEffect(() => onNodeEditRequest(id, () => setIsEditing(true)), [id])
 
   useEffect(() => {
     if (!isEditing) return
@@ -34,7 +45,7 @@ export function CanvasNodeView({ id, data, selected }: NodeProps<CanvasNode>) {
   return (
     <div className="size-full">
       <NodeResizer
-        isVisible={selected}
+        isVisible={showControls}
         minWidth={MIN_NODE_WIDTH}
         minHeight={MIN_NODE_HEIGHT}
         handleStyle={{
@@ -47,7 +58,7 @@ export function CanvasNodeView({ id, data, selected }: NodeProps<CanvasNode>) {
         lineStyle={{ borderColor: `color-mix(in srgb, ${text} 45%, transparent)` }}
       />
       <NodeColorToolbar
-        selected={selected}
+        selected={showControls}
         activeColor={data.color}
         onSelect={(fill) => updateNodeData(id, { color: fill })}
       />
