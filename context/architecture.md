@@ -52,6 +52,11 @@
 - Templates are loaded into the active Liveblocks room when a user imports one.
 - Import can occur on canvas creation or from within the editor at any time.
 
+## Canvas Schema Notes
+
+- Node data is `{ label, color, shape }`. Edges have no `type` and carry only an optional `data.label` (the text box over a line, saved and synced with the edge). Arrowheads come from React Flow `defaultEdgeOptions` at render time and are not stored.
+- Selection, dragging, measured size, pan mode, the clipboard, and edit requests are local to each browser and are never synced or saved.
+
 ## Invariants
 
 1. Request handlers do not run long-lived AI work — that belongs in background tasks.

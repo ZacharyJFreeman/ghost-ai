@@ -1,6 +1,7 @@
 "use client"
 
 import { FolderOpen, Pencil, Plus, Trash2, Users, X } from "lucide-react"
+import Link from "next/link"
 
 import { PillButton } from "@/components/app/pill-button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -38,11 +39,19 @@ interface ProjectListProps {
   projects: Project[]
   activeProjectId?: string
   empty: React.ReactNode
+  onNavigate?: () => void
   onRename: (project: Project) => void
   onDelete: (project: Project) => void
 }
 
-function ProjectList({ projects, activeProjectId, empty, onRename, onDelete }: ProjectListProps) {
+function ProjectList({
+  projects,
+  activeProjectId,
+  empty,
+  onNavigate,
+  onRename,
+  onDelete,
+}: ProjectListProps) {
   if (projects.length === 0) return empty
 
   return (
@@ -56,7 +65,13 @@ function ProjectList({ projects, activeProjectId, empty, onRename, onDelete }: P
             project.id === activeProjectId && "border-brand/40 bg-accent-dim text-copy-primary"
           )}
         >
-          <span className="truncate">{project.name}</span>
+          <Link
+            href={`/editor/${project.id}`}
+            onClick={onNavigate}
+            className="min-w-0 flex-1 truncate rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+          >
+            {project.name}
+          </Link>
           {project.isOwner && (
             <span className="flex shrink-0 items-center gap-1">
               <PillButton
@@ -137,6 +152,7 @@ export function ProjectSidebar({
           <ProjectList
             projects={ownedProjects}
             activeProjectId={activeProjectId}
+            onNavigate={onClose}
             onRename={onRename}
             onDelete={onDelete}
             empty={
@@ -152,6 +168,7 @@ export function ProjectSidebar({
           <ProjectList
             projects={sharedProjects}
             activeProjectId={activeProjectId}
+            onNavigate={onClose}
             onRename={onRename}
             onDelete={onDelete}
             empty={

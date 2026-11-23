@@ -33,7 +33,8 @@ export type CanvasNodeData = {
 
 export type CanvasNode = Node<CanvasNodeData, "canvasNode">
 
-export type CanvasEdge = Edge<Record<string, unknown>, "canvasEdge">
+// `data.label` is the optional text box shown over the middle of the line.
+export type CanvasEdge = Edge<{ label?: string }, "canvasEdge">
 
 export interface ShapeSize {
   width: number

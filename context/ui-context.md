@@ -69,6 +69,17 @@ Default node color: `#1F1F1F` with `#EDEDED` text.
 
 Smooth-step path with an arrow marker. Default edge color: `#f8fafc`. Stroke width is thin — edges are visually secondary to nodes.
 
+Current implementation (spec 22): every edge ends in a closed arrowhead at its target, set once through React Flow `defaultEdgeOptions` (nothing is stored per edge). The line and arrowhead share one color through React Flow's `--xy-edge-stroke` variable, set to `--text-muted` (`--text-secondary` when selected). The smooth-step path and the `#f8fafc` color above are still a follow-up; edges use React Flow's default bezier path, drawn by `components/editor/canvas-edge.tsx` (same path, plus the optional text box).
+
+### Canvas Interactions
+
+- Dragging empty canvas draws a selection box (accent border and `--accent-primary-dim` fill, through React Flow's `--xy-selection-*` variables); middle/right-drag pans.
+- Double-clicking empty canvas toggles pan mode (left-drag pans, a "Pan mode" status chip shows at the top center); double-click again or `Esc` exits.
+- A selected group moves together; the color toolbar and resize handles show only when exactly one shape is selected.
+- Clicking a line adds a text box over its middle (a rounded input, part of the line, not a shape; it cannot be moved and is removed when its text is cleared); double-clicking a line deletes it.
+- An info button at the end of the bottom toolbar opens a centered "Canvas shortcuts and controls" dialog (`canvas-help-dialog.tsx`, built on `AppDialog`) listing every shortcut and gesture; clicking outside it, `Esc`, or the close button closes it.
+- Shortcuts: `Cmd/Ctrl + A / C / X / V / D` (select all, copy, cut, paste, duplicate), `Enter` edits the selected shape's label.
+
 ## Component Library
 
 shadcn/ui on top of Tailwind. Components live in `components/ui/` and are treated as protected foundation components. Use the CLI to add new components rather than writing them from scratch, and put project-specific styling in app-level components instead of editing `components/ui/*`.
