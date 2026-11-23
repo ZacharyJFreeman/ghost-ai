@@ -36,7 +36,7 @@ import { CanvasNodeView } from "@/components/editor/canvas-node"
 import { LiveCursors } from "@/components/editor/live-cursors"
 import { ShapePanel } from "@/components/editor/shape-panel"
 import { CANVAS_TEMPLATES } from "@/components/editor/starter-templates"
-import { useCanvasAutosave, type SaveStatus } from "@/hooks/use-canvas-autosave"
+import { normalizeCanvas, useCanvasAutosave, type SaveStatus } from "@/hooks/use-canvas-autosave"
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
 import {
   buildPaste,
@@ -46,7 +46,7 @@ import {
   snapshotSelection,
 } from "@/lib/canvas-clipboard"
 import { requestNodeEdit } from "@/lib/canvas-edit-request"
-import { loadCanvas } from "@/lib/client/canvas-api"
+import { loadCanvas, type SavedCanvas } from "@/lib/client/canvas-api"
 import { takePendingTemplate } from "@/lib/pending-template"
 import {
   CANVAS_SHAPES,
@@ -116,9 +116,11 @@ interface CanvasFlowProps {
   // Lets the workspace navbar show the save status and trigger a save.
   onSaveStatusChange?: (status: SaveStatus) => void
   saveNowRef?: RefObject<(() => void) | null>
+  // Lets "Save as" read the canvas exactly as it is on screen.
+  getCanvasRef?: RefObject<(() => SavedCanvas) | null>
 }
 
-export function CanvasFlow({ onSaveStatusChange, saveNowRef }: CanvasFlowProps) {
+export function CanvasFlow({ onSaveStatusChange, saveNowRef, getCanvasRef }: CanvasFlowProps) {
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDelete } =
     useLiveblocksFlow<CanvasNode, CanvasEdge>({
       suspense: true,
@@ -157,6 +159,14 @@ export function CanvasFlow({ onSaveStatusChange, saveNowRef }: CanvasFlowProps) 
       saveNowRef.current = null
     }
   }, [saveNow, saveNowRef])
+
+  useEffect(() => {
+    if (!getCanvasRef) return
+    getCanvasRef.current = () => normalizeCanvas({ nodes, edges })
+    return () => {
+      getCanvasRef.current = null
+    }
+  }, [nodes, edges, getCanvasRef])
 
   // Load the saved canvas once, only into a room that is still empty. A room
   // that already has content (active collaboration) is never overwritten.

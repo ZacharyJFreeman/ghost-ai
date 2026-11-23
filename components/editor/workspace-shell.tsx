@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertCircle, Check, Loader2, PanelRight, Save, Share2 } from "lucide-react"
+import { AlertCircle, Check, CopyPlus, Loader2, PanelRight, Save, Share2 } from "lucide-react"
 import { useRef, useState } from "react"
 
 import { PillButton } from "@/components/app/pill-button"
@@ -9,10 +9,13 @@ import { EditorCanvas } from "@/components/editor/editor-canvas"
 import { EditorNavbar } from "@/components/editor/editor-navbar"
 import { ProjectDialogs } from "@/components/editor/project-dialogs"
 import { ProjectSidebar } from "@/components/editor/project-sidebar"
+import { SaveAsDialog } from "@/components/editor/save-as-dialog"
 import { ShareDialog } from "@/components/editor/share-dialog"
 import type { SaveStatus } from "@/hooks/use-canvas-autosave"
 import { useProjectActions } from "@/hooks/use-project-actions"
+import { useSaveAs } from "@/hooks/use-save-as"
 import { useShareDialog } from "@/hooks/use-share-dialog"
+import type { SavedCanvas } from "@/lib/client/canvas-api"
 import type { Project } from "@/lib/projects"
 
 interface WorkspaceShellProps {
@@ -28,6 +31,8 @@ export function WorkspaceShell({ project, ownedProjects, sharedProjects }: Works
   const share = useShareDialog(project.id)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle")
   const saveNowRef = useRef<(() => void) | null>(null)
+  const getCanvasRef = useRef<(() => SavedCanvas) | null>(null)
+  const saveAs = useSaveAs(project.name, getCanvasRef)
 
   return (
     <div className="flex h-screen flex-col bg-base">
@@ -62,6 +67,10 @@ export function WorkspaceShell({ project, ownedProjects, sharedProjects }: Works
                     ? "Error"
                     : "Save"}
             </PillButton>
+            <PillButton variant="dark" size="sm" onClick={saveAs.open}>
+              <CopyPlus />
+              Save as
+            </PillButton>
             <PillButton variant="dark" size="sm" onClick={() => void share.open()}>
               <Share2 />
               Share
@@ -87,6 +96,7 @@ export function WorkspaceShell({ project, ownedProjects, sharedProjects }: Works
               roomId={project.id}
               onSaveStatusChange={setSaveStatus}
               saveNowRef={saveNowRef}
+              getCanvasRef={getCanvasRef}
             />
           </div>
         </main>
@@ -105,6 +115,7 @@ export function WorkspaceShell({ project, ownedProjects, sharedProjects }: Works
         onDelete={openDelete}
       />
       <ProjectDialogs {...dialogs} />
+      <SaveAsDialog saveAs={saveAs} />
       <ShareDialog share={share} isOwner={project.isOwner} />
     </div>
   )

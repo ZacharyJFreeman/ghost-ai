@@ -16,7 +16,7 @@ interface CanvasLike {
 
 // Keep only what defines the canvas. Transient React Flow fields (selection,
 // measured size, dragging) are dropped so selecting a node never triggers a save.
-function normalize({ nodes, edges }: CanvasLike): SavedCanvas {
+export function normalizeCanvas({ nodes, edges }: CanvasLike): SavedCanvas {
   return {
     nodes: nodes.map((node) => {
       const n = node as Record<string, unknown>
@@ -61,7 +61,7 @@ export function useCanvasAutosave(projectId: string, canvas: CanvasLike) {
   const rerun = useRef(false)
   const persistRef = useRef<(keepalive?: boolean) => Promise<void>>(async () => {})
 
-  const current = normalize(canvas)
+  const current = normalizeCanvas(canvas)
   const serialized = JSON.stringify(current)
 
   // Refs are updated after render (not during it) so timers and flushes read the newest canvas.
@@ -105,7 +105,7 @@ export function useCanvasAutosave(projectId: string, canvas: CanvasLike) {
   // Call once the load step is done. Pass the state that was loaded from the
   // server so it is not immediately saved back unchanged.
   const markLoaded = useCallback((loaded?: CanvasLike) => {
-    if (loaded) lastSaved.current = JSON.stringify(normalize(loaded))
+    if (loaded) lastSaved.current = JSON.stringify(normalizeCanvas(loaded))
     setIsLoaded(true)
   }, [])
 
