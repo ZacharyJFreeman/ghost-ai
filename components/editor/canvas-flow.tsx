@@ -13,14 +13,24 @@ import {
   type ReactFlowInstance,
 } from "@xyflow/react"
 import { ChevronDown, ChevronUp } from "lucide-react"
-import { useCallback, useEffect, useRef, useState, type DragEvent, type MouseEvent } from "react"
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type DragEvent,
+  type MouseEvent,
+  type RefObject,
+} from "react"
 
 import { CanvasControls } from "@/components/editor/canvas-controls"
 import { CanvasNodeView } from "@/components/editor/canvas-node"
 import { LiveCursors } from "@/components/editor/live-cursors"
 import { ShapePanel } from "@/components/editor/shape-panel"
 import { CANVAS_TEMPLATES } from "@/components/editor/starter-templates"
+import { useCanvasAutosave, type SaveStatus } from "@/hooks/use-canvas-autosave"
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
+import { loadCanvas } from "@/lib/client/canvas-api"
 import { takePendingTemplate } from "@/lib/pending-template"
 import {
   CANVAS_SHAPES,
@@ -53,7 +63,13 @@ function parseShapePayload(raw: string): ShapeDragPayload | null {
 
 // React Flow wired to Liveblocks Storage: nodes and edges are shared by
 // everyone in the room. Must render inside a RoomProvider and Suspense.
-export function CanvasFlow() {
+interface CanvasFlowProps {
+  // Lets the workspace navbar show the save status and trigger a save.
+  onSaveStatusChange?: (status: SaveStatus) => void
+  saveNowRef?: RefObject<(() => void) | null>
+}
+
+export function CanvasFlow({ onSaveStatusChange, saveNowRef }: CanvasFlowProps) {
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDelete } =
     useLiveblocksFlow<CanvasNode, CanvasEdge>({
       suspense: true,
@@ -76,9 +92,55 @@ export function CanvasFlow() {
 
   useKeyboardShortcuts({ flow, undo, redo })
 
+  const roomId = useRoom().id
+  const { status, saveNow, markLoaded } = useCanvasAutosave(roomId, { nodes, edges })
+
+  useEffect(() => {
+    onSaveStatusChange?.(status)
+  }, [status, onSaveStatusChange])
+
+  useEffect(() => {
+    if (!saveNowRef) return
+    saveNowRef.current = saveNow
+    return () => {
+      saveNowRef.current = null
+    }
+  }, [saveNow, saveNowRef])
+
+  // Load the saved canvas once, only into a room that is still empty. A room
+  // that already has content (active collaboration) is never overwritten.
+  // Autosave stays off until this decision is made; if loading fails it stays
+  // off, so a partial canvas can never replace the saved one.
+  const loadStarted = useRef(false)
+  useEffect(() => {
+    if (!flow || loadStarted.current) return
+    loadStarted.current = true
+
+    if (nodes.length > 0 || edges.length > 0) {
+      markLoaded()
+      return
+    }
+
+    loadCanvas(roomId)
+      .then((saved) => {
+        const hasSaved = saved.nodes.length > 0 || saved.edges.length > 0
+        const stillEmpty = flow.getNodes().length === 0 && flow.getEdges().length === 0
+        if (hasSaved && stillEmpty) {
+          onNodesChange((saved.nodes as CanvasNode[]).map((item) => ({ type: "add", item })))
+          onEdgesChange((saved.edges as CanvasEdge[]).map((item) => ({ type: "add", item })))
+          markLoaded({ nodes: saved.nodes as object[], edges: saved.edges as object[] })
+          requestAnimationFrame(() => void flow.fitView({ duration: 200 }))
+        } else {
+          markLoaded()
+        }
+      })
+      .catch(() => {
+        // Leave autosave off rather than risk overwriting the saved canvas.
+      })
+  }, [flow, roomId, nodes, edges, onNodesChange, onEdgesChange, markLoaded])
+
   // A template picked in the create-project dialog is added once, to a canvas
   // that is still empty, then the view is fitted to it.
-  const roomId = useRoom().id
   useEffect(() => {
     if (!flow) return
     const templateId = takePendingTemplate(roomId)

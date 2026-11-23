@@ -5,6 +5,7 @@ import {
   getAuthenticatedUserId,
   readJsonBody,
 } from "@/lib/api-response"
+import { deleteCanvasBlob } from "@/lib/canvas-storage"
 import { prisma } from "@/lib/prisma"
 import { parseRenameName } from "@/lib/project-validation"
 
@@ -59,7 +60,13 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
   const access = await requireOwnedProject(projectId, userId)
   if (!access.ok) return access.response
 
+  const { canvasJsonPath } = (await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { canvasJsonPath: true },
+  })) ?? { canvasJsonPath: null }
+
   await prisma.project.delete({ where: { id: projectId } })
+  if (canvasJsonPath) await deleteCanvasBlob(canvasJsonPath)
 
   return NextResponse.json({ success: true })
 }
