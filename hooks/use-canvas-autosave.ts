@@ -7,6 +7,7 @@ import { saveCanvas, type SavedCanvas } from "@/lib/client/canvas-api"
 export type SaveStatus = "idle" | "saving" | "saved" | "error"
 
 const SAVE_DEBOUNCE_MS = 2000
+const RESULT_VISIBLE_MS = 2000
 
 interface CanvasLike {
   nodes: readonly object[]
@@ -127,6 +128,13 @@ export function useCanvasAutosave(projectId: string, canvas: CanvasLike) {
       window.removeEventListener("pagehide", flush)
     }
   }, [isLoaded, persist])
+
+  // "saved" and "error" are brief confirmations: return to idle so the Save button resets.
+  useEffect(() => {
+    if (status !== "saved" && status !== "error") return
+    const timer = setTimeout(() => setStatus("idle"), RESULT_VISIBLE_MS)
+    return () => clearTimeout(timer)
+  }, [status])
 
   const saveNow = useCallback(() => {
     if (isLoaded) void persist()

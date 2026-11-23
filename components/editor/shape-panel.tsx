@@ -109,10 +109,10 @@ export function ShapePanel({ selected, onSelect, children }: ShapePanelProps) {
       </div>
 
       {dragging && pointer && (
-        // The top-left corner sits at the cursor, matching where the node lands on drop.
+        // The center sits at the cursor, matching where the node lands on drop.
         <div
           aria-hidden="true"
-          className="pointer-events-none fixed z-50 opacity-60"
+          className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-1/2 opacity-60"
           style={{
             left: pointer.x,
             top: pointer.y,

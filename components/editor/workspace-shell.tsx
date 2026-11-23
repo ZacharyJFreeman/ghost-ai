@@ -59,7 +59,7 @@ export function WorkspaceShell({ project, ownedProjects, sharedProjects }: Works
                 : saveStatus === "saved"
                   ? "Saved"
                   : saveStatus === "error"
-                    ? "Save failed"
+                    ? "Error"
                     : "Save"}
             </PillButton>
             <PillButton variant="dark" size="sm" onClick={() => void share.open()}>

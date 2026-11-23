@@ -118,6 +118,9 @@ export function CanvasFlow({ onSaveStatusChange, saveNowRef }: CanvasFlowProps) 
 
     if (nodes.length > 0 || edges.length > 0) {
       markLoaded()
+      // The ReactFlow `fitView` prop is off (it zoomed in on the first dropped
+      // node), so fit once here for a room that already has content.
+      requestAnimationFrame(() => void flow.fitView({ duration: 200 }))
       return
     }
 
@@ -156,7 +159,10 @@ export function CanvasFlow({ onSaveStatusChange, saveNowRef }: CanvasFlowProps) 
       const flow = flowRef.current
       if (!flow) return
 
-      const position = flow.screenToFlowPosition({ x: clientX, y: clientY })
+      // screenToFlowPosition already handles the container rect, pan and zoom.
+      // Node size is in flow units, so half of it centers the node on the cursor.
+      const cursor = flow.screenToFlowPosition({ x: clientX, y: clientY })
+      const position = { x: cursor.x - payload.width / 2, y: cursor.y - payload.height / 2 }
       nodeCounter.current += 1
 
       const node: CanvasNode = {
@@ -171,6 +177,40 @@ export function CanvasFlow({ onSaveStatusChange, saveNowRef }: CanvasFlowProps) 
     },
     [onNodesChange],
   )
+
+  // Delete/Backspace removes the selected nodes and edges through the Liveblocks
+  // `onDelete` mutation (its `remove` changes are no-ops), so the removal syncs to
+  // everyone. Edges attached to a removed node go with it. Selection is read from the React Flow store. Listens on
+  // window because focus is often on the page body after a click; ignored while
+  // typing in a field.
+  useEffect(() => {
+    function onKeyDown(event: globalThis.KeyboardEvent) {
+      if (event.key !== "Delete" && event.key !== "Backspace") return
+      const target = event.target
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
+      ) {
+        return
+      }
+      if (!flow) return
+
+      const selectedNodes = flow.getNodes().filter((node) => node.selected)
+      const selectedNodeIds = new Set(selectedNodes.map((node) => node.id))
+      const deletedEdges = flow
+        .getEdges()
+        .filter(
+          (edge) =>
+            edge.selected || selectedNodeIds.has(edge.source) || selectedNodeIds.has(edge.target),
+        )
+      if (selectedNodes.length === 0 && deletedEdges.length === 0) return
+
+      event.preventDefault()
+      void onDelete({ nodes: selectedNodes, edges: deletedEdges })
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [flow, onDelete])
 
   const handleDragOver = useCallback((event: DragEvent) => {
     if (!event.dataTransfer.types.includes(SHAPE_DRAG_MIME)) return
@@ -241,7 +281,7 @@ export function CanvasFlow({ onSaveStatusChange, saveNowRef }: CanvasFlowProps) 
         onMouseLeave={() => updateMyPresence({ cursor: null })}
         connectionMode={ConnectionMode.Loose}
         colorMode="dark"
-        fitView
+        deleteKeyCode={null}
         style={{ backgroundColor: "var(--bg-base)" }}
       >
         <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} color="var(--border-subtle)" />
