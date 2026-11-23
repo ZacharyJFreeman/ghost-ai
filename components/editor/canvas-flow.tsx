@@ -263,7 +263,10 @@ export function CanvasFlow({ onSaveStatusChange, saveNowRef }: CanvasFlowProps) 
       const target = event.target
       if (
         target instanceof HTMLElement &&
-        (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
+        (target.isContentEditable ||
+          ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+          // Never delete shapes from behind an open dialog (e.g. the shortcuts popup).
+          target.closest("[role='dialog']"))
       ) {
         return
       }

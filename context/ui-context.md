@@ -77,6 +77,7 @@ Current implementation (spec 22): every edge ends in a closed arrowhead at its t
 - Double-clicking empty canvas toggles pan mode (left-drag pans, a "Pan mode" status chip shows at the top center); double-click again or `Esc` exits.
 - A selected group moves together; the color toolbar and resize handles show only when exactly one shape is selected.
 - Clicking a line adds a text box over its middle (a rounded input, part of the line, not a shape; it cannot be moved and is removed when its text is cleared); double-clicking a line deletes it.
+- An info button at the end of the bottom toolbar opens a centered "Canvas shortcuts and controls" dialog (`canvas-help-dialog.tsx`, built on `AppDialog`) listing every shortcut and gesture; clicking outside it, `Esc`, or the close button closes it.
 - Shortcuts: `Cmd/Ctrl + A / C / X / V / D` (select all, copy, cut, paste, duplicate), `Enter` edits the selected shape's label.
 
 ## Component Library

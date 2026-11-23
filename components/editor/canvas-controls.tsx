@@ -1,7 +1,9 @@
 "use client"
 
-import { Maximize, Redo2, Undo2, ZoomIn, ZoomOut } from "lucide-react"
+import { Info, Maximize, Redo2, Undo2, ZoomIn, ZoomOut } from "lucide-react"
+import { useState } from "react"
 
+import { CanvasHelpDialog } from "@/components/editor/canvas-help-dialog"
 import { cn } from "@/lib/utils"
 
 interface CanvasControlsProps {
@@ -45,8 +47,10 @@ function ControlButton({
 }
 
 // Rendered inside the shape panel pill, after the shapes: a divider, zoom controls,
-// another divider, then undo/redo.
+// another divider, undo/redo, another divider, then the shortcuts info button.
 export function CanvasControls(props: CanvasControlsProps) {
+  const [helpOpen, setHelpOpen] = useState(false)
+
   return (
     <>
       <div className="mx-1 h-5 w-px bg-border" />
@@ -66,6 +70,16 @@ export function CanvasControls(props: CanvasControlsProps) {
         <ControlButton label="Redo" onClick={props.onRedo} disabled={!props.canRedo}>
           <Redo2 className="size-4" />
         </ControlButton>
+        <div className="mx-1 h-5 w-px bg-border" />
+        <ControlButton label="Shortcuts and controls" onClick={() => setHelpOpen(true)}>
+          <Info className="size-4" />
+        </ControlButton>
+        {/* The dialog renders in a portal, but React events still bubble to the
+            canvas wrapper, whose click handler places an armed shape. Stop them
+            here so clicking in or outside the dialog never places a shape. */}
+        <span className="contents" onClick={(event) => event.stopPropagation()}>
+          <CanvasHelpDialog open={helpOpen} onOpenChange={setHelpOpen} />
+        </span>
     </>
   )
 }
