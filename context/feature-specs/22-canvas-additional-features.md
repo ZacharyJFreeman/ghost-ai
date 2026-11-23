@@ -71,7 +71,7 @@ Most changes are in `components/editor/canvas-flow.tsx`. Reuse the existing `use
 ### Part 3. Arrowheads
 
 1. Set arrowheads once on `<ReactFlow>`:
-   - `defaultEdgeOptions` as a module constant: `{ markerEnd: { type: MarkerType.ArrowClosed }, interactionWidth: 20 }`
+   - `defaultEdgeOptions` as a module constant: `{ markerEnd: { type: MarkerType.ArrowClosed, width: 37.5, height: 37.5 }, interactionWidth: 20 }`. The arrowhead is 3x React Flow's default size (12.5), so it stays readable on the canvas.
    - React Flow merges `defaultEdgeOptions` into every edge when it renders (and the marker definitions read it), so drawn, saved, template, and pasted lines all get an arrow. Do not store `markerEnd` on edges, do not wrap `onConnect`, and do not patch edges when loading. The saved JSON format does not change (autosave does not save `markerEnd`).
    - direction: a connection's `source` is where the drag started and `target` where it was dropped (every handle is a source handle), so the arrow points the way the line was drawn.
 

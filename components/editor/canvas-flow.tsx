@@ -68,8 +68,9 @@ const edgeTypes = { default: CanvasEdgeView }
 // Every line ends in an arrowhead at its target (the end it was dropped on).
 // React Flow merges these options into every edge when it renders, so drawn,
 // saved, template, split and pasted lines all get it without storing anything.
+const ARROW_SIZE = 37.5 // React Flow's default is 12.5; this is 3x larger.
 const defaultEdgeOptions: DefaultEdgeOptions = {
-  markerEnd: { type: MarkerType.ArrowClosed },
+  markerEnd: { type: MarkerType.ArrowClosed, width: ARROW_SIZE, height: ARROW_SIZE },
   interactionWidth: 20,
 }
 
