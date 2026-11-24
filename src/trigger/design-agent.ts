@@ -14,6 +14,7 @@ import {
 } from "../../lib/design-agent";
 import { getLiveblocks } from "../../lib/liveblocks";
 import type { CanvasEdge, CanvasNode } from "../../types/canvas";
+import { AI_STATUS_FEED_ID, AI_USER_ID, AI_USER_NAME, type AiStatusPayload } from "../../types/tasks";
 
 export type DesignAgentPayload = {
   prompt: string;
@@ -25,8 +26,7 @@ const MODEL_TIMEOUT_MS = 120_000;
 
 // The AI joins the room as its own participant (set through the Liveblocks
 // REST API, so no websocket), using the accent-ai-text token color.
-const AI_USER_ID = "ghost-ai";
-const AI_USER_INFO = { name: "Ghost AI", avatar: "", color: "#8b82ff" };
+const AI_USER_INFO = { name: AI_USER_NAME, avatar: "", color: "#8b82ff" };
 // Presence expires on its own, so a crashed task never leaves the AI stuck "thinking".
 const PRESENCE_TTL_SECONDS = 120;
 const CLEAR_PRESENCE_TTL_SECONDS = 2;
@@ -70,11 +70,25 @@ async function setAiPresence(roomId: string, cursor: Cursor, isThinking: boolean
   }
 }
 
-// The shared status feed: a room event every participant can listen to.
-async function publishStatus(roomId: string, runId: string, status: StatusKind, message: string) {
-  logger.log(`design-agent: ${status}`, { message });
+// The shared status feed is one Liveblocks feed per room. Creating it when it
+// already exists returns 409, which just means it is there; writing to a feed that
+// does not exist fails, so this runs once before the first status.
+async function ensureStatusFeed(roomId: string) {
   try {
-    await getLiveblocks().broadcastEvent(roomId, { type: "ai-status", runId, status, message });
+    await getLiveblocks().createFeed({ roomId, feedId: AI_STATUS_FEED_ID });
+  } catch (error) {
+    if ((error as { status?: number }).status === 409) return;
+    logger.warn("design-agent: could not create the status feed", { error: String(error) });
+  }
+}
+
+// Status goes to the room's feed, so every participant's sidebar shows the latest one.
+async function publishStatus(roomId: string, runId: string, status: StatusKind, message: string) {
+  logger.log(`design-agent: ${status}`, { runId, message });
+  try {
+    // `satisfies` keeps the literal's type, which Liveblocks accepts as JSON (an interface is not).
+    const data = { text: message } satisfies AiStatusPayload;
+    await getLiveblocks().createFeedMessage({ roomId, feedId: AI_STATUS_FEED_ID, data });
   } catch (error) {
     logger.warn("design-agent: could not publish status", { error: String(error) });
   }
@@ -117,6 +131,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export async function runDesignAgent(payload: DesignAgentPayload, runId: string) {
   const { prompt, roomId } = payload;
 
+  await ensureStatusFeed(roomId);
   await publishStatus(roomId, runId, "start", "Ghost AI is starting on your design");
   await setAiPresence(roomId, null, true);
 

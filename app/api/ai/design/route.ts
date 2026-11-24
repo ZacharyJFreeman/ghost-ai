@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 
 import { authorizeProject } from "@/lib/api-project-access"
 import { errorResponse, readJsonBody } from "@/lib/api-response"
+import { createRunToken } from "@/lib/design-run-token"
 import { prisma } from "@/lib/prisma"
 import type { designAgentTask } from "@/src/trigger/design-agent"
 
@@ -42,5 +43,8 @@ export async function POST(request: Request) {
     },
   })
 
-  return NextResponse.json({ runId: handle.id })
+  // The browser follows the run with this token (it can read only this run).
+  const publicToken = await createRunToken(handle.id)
+
+  return NextResponse.json({ runId: handle.id, publicToken })
 }

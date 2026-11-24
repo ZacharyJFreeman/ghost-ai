@@ -1,4 +1,3 @@
-import { auth } from "@trigger.dev/sdk"
 import { NextResponse } from "next/server"
 
 import {
@@ -6,6 +5,7 @@ import {
   getAuthenticatedUserId,
   readJsonBody,
 } from "@/lib/api-response"
+import { createRunToken } from "@/lib/design-run-token"
 import { prisma } from "@/lib/prisma"
 
 export async function POST(request: Request) {
@@ -25,9 +25,7 @@ export async function POST(request: Request) {
   if (!taskRun) return errorResponse("Run not found", 404)
   if (taskRun.userId !== userId) return errorResponse("Forbidden", 403)
 
-  const token = await auth.createPublicToken({
-    scopes: { read: { runs: [runId] } },
-  })
+  const token = await createRunToken(runId)
 
   return NextResponse.json({ token })
 }

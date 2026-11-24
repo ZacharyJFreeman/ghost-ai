@@ -1,6 +1,6 @@
 "use client"
 
-import { ClientSideSuspense, LiveblocksProvider, RoomProvider } from "@liveblocks/react/suspense"
+import { ClientSideSuspense } from "@liveblocks/react/suspense"
 import type { ReactNode, RefObject } from "react"
 
 import { Panel } from "@/components/app/panel"
@@ -12,7 +12,6 @@ import { PresenceAvatars } from "@/components/editor/presence-avatars"
 import type { SavedCanvas } from "@/lib/client/canvas-api"
 
 interface EditorCanvasProps {
-  roomId: string
   onSaveStatusChange?: (status: SaveStatus) => void
   saveNowRef?: RefObject<(() => void) | null>
   getCanvasRef?: RefObject<(() => SavedCanvas) | null>
@@ -47,28 +46,21 @@ function CanvasError() {
   )
 }
 
-// Sets up the Liveblocks room for a project (the room ID is the project ID) and
-// renders the collaborative canvas inside it.
-export function EditorCanvas({
-  roomId,
-  onSaveStatusChange,
-  saveNowRef,
-  getCanvasRef,
-}: EditorCanvasProps) {
+// Renders the collaborative canvas. It must sit inside an `EditorRoom`, which
+// owns the Liveblocks connection for the project.
+export function EditorCanvas({ onSaveStatusChange, saveNowRef, getCanvasRef }: EditorCanvasProps) {
   return (
-    <LiveblocksProvider authEndpoint="/api/liveblocks-auth">
-      <RoomProvider id={roomId} initialPresence={{ cursor: null, isThinking: false }}>
-        <PresenceAvatars />
-        <CanvasErrorBoundary fallback={<CanvasError />}>
-          <ClientSideSuspense fallback={<CanvasLoading />}>
-            <CanvasFlow
-              onSaveStatusChange={onSaveStatusChange}
-              saveNowRef={saveNowRef}
-              getCanvasRef={getCanvasRef}
-            />
-          </ClientSideSuspense>
-        </CanvasErrorBoundary>
-      </RoomProvider>
-    </LiveblocksProvider>
+    <>
+      <PresenceAvatars />
+      <CanvasErrorBoundary fallback={<CanvasError />}>
+        <ClientSideSuspense fallback={<CanvasLoading />}>
+          <CanvasFlow
+            onSaveStatusChange={onSaveStatusChange}
+            saveNowRef={saveNowRef}
+            getCanvasRef={getCanvasRef}
+          />
+        </ClientSideSuspense>
+      </CanvasErrorBoundary>
+    </>
   )
 }
