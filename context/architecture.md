@@ -20,7 +20,7 @@
 - `lib` — Shared infrastructure: Prisma client, access control helpers, and utilities.
 - `lib/client` — Client-side API wrappers (`fetch` calls to `app/api`) used by hooks. Client-safe only: no server imports (Prisma, Clerk server SDK).
 - `types` — Shared TypeScript types and constants (e.g. `types/canvas.ts`: canvas node/edge types and the node color palette).
-- `liveblocks.config.ts` (project root) — Global Liveblocks `Presence` and `UserMeta` types.
+- `liveblocks.config.ts` (project root) — Global Liveblocks `Presence`, `RoomEvent` and `UserMeta` types.
 - `components` — UI composition: canvas surfaces, sidebars, dialogs, and interactive elements.
 - `hooks` — Client-side React hooks that own UI state (e.g. project dialog, form, and loading state). No data access or business rules.
 - `prisma` — Database schema and generated client output.
@@ -45,6 +45,12 @@
 - Workspace access (`/editor/[roomId]`) is checked server-side. Missing and unauthorized projects are indistinguishable and both show `AccessDenied`.
 - The project ID is also the Liveblocks room ID. It is the slugified project name plus a short unique suffix, generated on the client and validated and uniqueness-checked by `POST /api/projects` (the schema's `cuid()` default applies when no ID is sent).
 - Liveblocks room tokens are issued only after verifying project membership.
+
+## AI Design Agent
+
+- The `design-agent` Trigger.dev task (`src/trigger/design-agent.ts`, logic in `lib/design-agent.ts`) reads the room's flow, asks Gemini for structured actions, validates them (allowed shapes, node color palette, grid and spacing rules), and applies them one at a time with `mutateFlow` from `@liveblocks/react-flow/node`, so every change reaches all collaborators through the normal Liveblocks storage.
+- The AI is a room participant (`userId` `ghost-ai`) set through the Liveblocks REST `setPresence` (cursor and `isThinking`, short TTL so it clears itself).
+- Progress is a shared status feed: `ai-status` room events (`start`, `processing`, `complete`, `error`) broadcast with `broadcastEvent`. They are ephemeral and not stored; a client must subscribe (`useEventListener`) to show them.
 
 ## Starter System Designs
 

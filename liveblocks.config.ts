@@ -8,6 +8,15 @@ declare global {
       isThinking: boolean
     }
 
+    // Room events: the shared AI status feed, broadcast by the design agent task
+    // (src/trigger/design-agent.ts) and delivered to everyone in the room.
+    RoomEvent: {
+      type: "ai-status"
+      runId: string
+      status: "start" | "processing" | "complete" | "error"
+      message: string
+    }
+
     // Static user data attached by the auth route (`POST /api/liveblocks-auth`).
     UserMeta: {
       id: string
