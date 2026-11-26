@@ -1,6 +1,7 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 
-import { PrismaClient } from "@/app/generated/prisma/client";
+// Relative (not `@/`) so the Trigger.dev bundler can resolve it for the spec task.
+import { PrismaClient } from "../app/generated/prisma/client";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;

@@ -12,6 +12,7 @@ import {
   type DesignOperation,
   type DesignOutput,
 } from "../../lib/design-agent";
+import { GEMINI_MODEL, getGeminiApiKey } from "../../lib/gemini";
 import { getLiveblocks } from "../../lib/liveblocks";
 import type { CanvasEdge, CanvasNode } from "../../types/canvas";
 import { AI_STATUS_FEED_ID, AI_USER_ID, AI_USER_NAME, type AiStatusPayload } from "../../types/tasks";
@@ -21,7 +22,6 @@ export type DesignAgentPayload = {
   roomId: string;
 };
 
-const DESIGN_MODEL = "gemini-3.5-flash";
 const MODEL_TIMEOUT_MS = 120_000;
 
 // The AI joins the room as its own participant (set through the Liveblocks
@@ -49,12 +49,6 @@ const outputSchema = jsonSchema<DesignOutput>(DESIGN_OUTPUT_SCHEMA as unknown as
     return { success: false, error: new Error("Model output is missing summary or actions") };
   },
 });
-
-function getApiKey(): string {
-  const key = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_AI_API_KEY;
-  if (!key) throw new Error("GEMINI_API_KEY is not set");
-  return key;
-}
 
 // Presence and status are cosmetic: a failure is logged and never fails the task.
 async function setAiPresence(roomId: string, cursor: Cursor, isThinking: boolean, ttl = PRESENCE_TTL_SECONDS) {
@@ -146,9 +140,9 @@ export async function runDesignAgent(payload: DesignAgentPayload, runId: string)
 
     // 2. Ask Gemini for structured canvas actions.
     await publishStatus(roomId, runId, "processing", "Thinking through the architecture");
-    const google = createGoogle({ apiKey: getApiKey() });
+    const google = createGoogle({ apiKey: getGeminiApiKey() });
     const { output } = await generateText({
-      model: google(DESIGN_MODEL),
+      model: google(GEMINI_MODEL),
       system: DESIGN_SYSTEM_PROMPT,
       prompt: buildPrompt(prompt, snapshotCanvas(nodes, edges)),
       output: Output.object({ schema: outputSchema }),
