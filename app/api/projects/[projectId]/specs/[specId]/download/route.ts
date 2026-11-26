@@ -1,6 +1,7 @@
 import { authorizeProject } from "@/lib/api-project-access"
 import { errorResponse } from "@/lib/api-response"
 import { prisma } from "@/lib/prisma"
+import { specFilename } from "@/lib/spec-filename"
 import { readSpecBlob } from "@/lib/spec-storage"
 
 interface RouteContext {
@@ -35,7 +36,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
   return new Response(markdown, {
     headers: {
       "Content-Type": "text/markdown; charset=utf-8",
-      "Content-Disposition": `attachment; filename="spec-${specId}.md"`,
+      "Content-Disposition": `attachment; filename="${specFilename(specId)}"`,
       "Cache-Control": "private, no-store",
     },
   })
