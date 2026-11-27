@@ -1,16 +1,20 @@
 "use client"
 
 import { Bot, X } from "lucide-react"
+import type { RefObject } from "react"
 
 import { PillButton } from "@/components/app/pill-button"
 import { AiArchitectTab } from "@/components/editor/ai-architect-tab"
 import { AiSpecsTab } from "@/components/editor/ai-specs-tab"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type { SavedCanvas } from "@/lib/client/canvas-api"
 import { cn } from "@/lib/utils"
 
 interface AiSidebarProps {
   isOpen: boolean
   onClose: () => void
+  // Lets the Specs tab read the canvas when generating a spec.
+  getCanvasRef: RefObject<(() => SavedCanvas) | null>
 }
 
 // Active tab uses the AI accent (indigo). The shadcn accent token in this
@@ -20,7 +24,7 @@ const TAB_CLASSES =
 
 // The right-hand AI chat sidebar. The parent owns open/close state; this keeps
 // the width transition and slide-in that were on the placeholder.
-export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
+export function AiSidebar({ isOpen, onClose, getCanvasRef }: AiSidebarProps) {
   return (
     <div
       className={cn(
@@ -64,7 +68,7 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
             <AiArchitectTab />
           </TabsContent>
           <TabsContent value="specs" className="overflow-y-auto">
-            <AiSpecsTab />
+            <AiSpecsTab getCanvasRef={getCanvasRef} />
           </TabsContent>
         </Tabs>
       </aside>

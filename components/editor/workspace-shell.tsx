@@ -103,7 +103,7 @@ export function WorkspaceShell({ project, ownedProjects, sharedProjects }: Works
             </div>
           </main>
 
-          <AiSidebar isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} />
+          <AiSidebar isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} getCanvasRef={getCanvasRef} />
         </div>
       </EditorRoom>
 

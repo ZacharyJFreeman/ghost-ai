@@ -2,33 +2,104 @@
 
 import { useRoom } from "@liveblocks/react"
 import { Download, FileText, Loader2, Sparkles } from "lucide-react"
-import { useState } from "react"
+import { useCallback, useState, type RefObject } from "react"
 
 import { PillButton } from "@/components/app/pill-button"
 import { SpecPreviewDialog } from "@/components/editor/spec-preview-dialog"
+import { SpecRunTracker } from "@/components/editor/spec-run-tracker"
+import { useAiChat } from "@/hooks/use-ai-chat"
 import { useProjectSpecs } from "@/hooks/use-project-specs"
 import { useSpecDownload } from "@/hooks/use-spec-download"
-import type { SpecSummary } from "@/lib/client/spec-api"
+import type { SavedCanvas } from "@/lib/client/canvas-api"
+import { errorMessage } from "@/lib/client/request"
+import { fetchSpecRunToken, startSpecRun, type SpecSummary } from "@/lib/client/spec-api"
 import { formatDateTime } from "@/lib/format-date"
+import { MAX_SPEC_CHAT_MESSAGES } from "@/lib/spec-generation"
+import { notifySpecGenerated } from "@/lib/spec-events"
+
+interface AiSpecsTabProps {
+  // Returns the canvas as it is on screen (set by the canvas, read when generating).
+  getCanvasRef: RefObject<(() => SavedCanvas) | null>
+}
 
 // The project's generated specs, newest first: click one to preview it, or use its
-// download button. The room ID is the project ID. The Generate Spec button does
-// nothing yet: generating from the UI is not part of this unit.
-export function AiSpecsTab() {
+// download button. The room ID is the project ID. Generate Spec writes a new spec
+// from the canvas and the room chat, follows the run, and refreshes the list when
+// it finishes.
+export function AiSpecsTab({ getCanvasRef }: AiSpecsTabProps) {
   const projectId = useRoom().id
+  const chat = useAiChat()
   const { specs, error, isLoading, retry } = useProjectSpecs(projectId)
   const { download, downloadingId, error: downloadError } = useSpecDownload(projectId)
   const [previewSpec, setPreviewSpec] = useState<SpecSummary | null>(null)
+  const [activeRun, setActiveRun] = useState<{ runId: string; publicToken: string } | null>(null)
+  const [isStarting, setIsStarting] = useState(false)
+  const [generateError, setGenerateError] = useState<string | null>(null)
+  const isGenerating = isStarting || activeRun !== null
+
+  async function generate() {
+    const canvas = getCanvasRef.current?.() ?? { nodes: [], edges: [] }
+    if (canvas.nodes.length === 0 && chat.entries.length === 0) {
+      setGenerateError("Add something to the canvas or the chat first.")
+      return
+    }
+
+    setIsStarting(true)
+    setGenerateError(null)
+    try {
+      const chatHistory = chat.entries.slice(-MAX_SPEC_CHAT_MESSAGES).map((entry) => ({
+        sender: entry.senderName,
+        text: entry.text,
+      }))
+      const runId = await startSpecRun(projectId, chatHistory, canvas)
+      setActiveRun({ runId, publicToken: await fetchSpecRunToken(runId) })
+    } catch (err) {
+      setGenerateError(errorMessage(err))
+    } finally {
+      setIsStarting(false)
+    }
+  }
+
+  const handleFinished = useCallback((succeeded: boolean) => {
+    setActiveRun(null)
+    if (succeeded) notifySpecGenerated()
+    else setGenerateError("Couldn't generate the spec. Please try again.")
+  }, [])
+
+  // The outcome is unknown; the list still refreshes when the window regains focus.
+  const handleLost = useCallback(() => {
+    setActiveRun(null)
+    setGenerateError("Lost track of the spec run. It may still finish: it will appear in the list.")
+  }, [])
 
   return (
     <div className="flex flex-col gap-4">
       <button
         type="button"
-        className="inline-flex h-9 w-full cursor-pointer items-center justify-center gap-1.5 rounded-full bg-ai text-sm font-medium text-white transition-opacity hover:opacity-85"
+        onClick={() => void generate()}
+        disabled={isGenerating}
+        aria-busy={isGenerating}
+        className="inline-flex h-9 w-full cursor-pointer items-center justify-center gap-1.5 rounded-full bg-ai text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        <Sparkles className="size-4" />
-        Generate Spec
+        {isGenerating ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+        {isGenerating ? "Generating..." : "Generate Spec"}
       </button>
+
+      {activeRun && (
+        <SpecRunTracker
+          key={activeRun.runId}
+          runId={activeRun.runId}
+          publicToken={activeRun.publicToken}
+          onFinished={handleFinished}
+          onLost={handleLost}
+        />
+      )}
+
+      {generateError && (
+        <p role="alert" className="text-xs text-error">
+          {generateError}
+        </p>
+      )}
 
       {isLoading && (
         <p role="status" className="flex items-center gap-2 text-xs text-copy-muted">

@@ -49,3 +49,27 @@ export async function downloadSpec(projectId: string, spec: SpecSummary): Promis
   link.remove()
   setTimeout(() => URL.revokeObjectURL(url), 0)
 }
+
+// Starts a spec generation run for the room (the room ID is the project ID) and
+// returns its run ID. The canvas and chat are what the spec is written from.
+export async function startSpecRun(
+  roomId: string,
+  chatHistory: { sender: string; text: string }[],
+  canvas: { nodes: unknown[]; edges: unknown[] },
+): Promise<string> {
+  const data = await request<{ runId?: string; error?: string }>("/api/ai/spec", "POST", {
+    roomId,
+    chatHistory,
+    nodes: canvas.nodes,
+    edges: canvas.edges,
+  })
+  if (!data.runId) throw new Error("The spec run could not be started.")
+  return data.runId
+}
+
+// A token that can read only this run (1 hour), for following it in real time.
+export async function fetchSpecRunToken(runId: string): Promise<string> {
+  const data = await request<{ token?: string; error?: string }>("/api/ai/spec/token", "POST", { runId })
+  if (!data.token) throw new Error("The spec run could not be followed.")
+  return data.token
+}
