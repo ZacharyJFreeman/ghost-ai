@@ -3,6 +3,7 @@
 import { useOthers } from "@liveblocks/react"
 import { useStore, ViewportPortal } from "@xyflow/react"
 import { useUser } from "@clerk/nextjs"
+import { Loader2 } from "lucide-react"
 
 // Other participants' cursors, drawn in canvas space (so they stay on the same
 // spot while panning or zooming) and counter-scaled to a constant on-screen
@@ -28,9 +29,12 @@ export function LiveCursors() {
               <path d="M1 1 L1 16 L5 12.5 L8 19 L10.5 18 L7.5 11.5 L13 11.5 Z" stroke="var(--bg-base)" strokeWidth="1" strokeLinejoin="round" />
             </svg>
             <span
-              className="absolute top-4 left-3 rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap text-black"
+              className="absolute top-4 left-3 flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap text-black"
               style={{ backgroundColor: color }}
             >
+              {other.presence?.isThinking && (
+                <Loader2 className="size-3 animate-spin" aria-label="Thinking" />
+              )}
               {other.info?.name ?? "Anonymous"}
             </span>
           </div>

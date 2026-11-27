@@ -7,6 +7,7 @@ import { PillButton } from "@/components/app/pill-button"
 import { AiSidebar } from "@/components/editor/ai-sidebar"
 import { EditorCanvas } from "@/components/editor/editor-canvas"
 import { EditorNavbar } from "@/components/editor/editor-navbar"
+import { EditorRoom } from "@/components/editor/editor-room"
 import { ProjectDialogs } from "@/components/editor/project-dialogs"
 import { ProjectSidebar } from "@/components/editor/project-sidebar"
 import { SaveAsDialog } from "@/components/editor/save-as-dialog"
@@ -88,21 +89,23 @@ export function WorkspaceShell({ project, ownedProjects, sharedProjects }: Works
         }
       />
 
-      <div className="flex min-h-0 flex-1">
-        <main className="relative min-w-0 flex-1 bg-base">
-          <div className="absolute inset-0">
-            <EditorCanvas
-              key={project.id}
-              roomId={project.id}
-              onSaveStatusChange={setSaveStatus}
-              saveNowRef={saveNowRef}
-              getCanvasRef={getCanvasRef}
-            />
-          </div>
-        </main>
+      {/* One room connection for the canvas and the AI sidebar; keyed so switching
+          projects remounts the room, load state, autosave, and chat. */}
+      <EditorRoom key={project.id} roomId={project.id}>
+        <div className="flex min-h-0 flex-1">
+          <main className="relative min-w-0 flex-1 bg-base">
+            <div className="absolute inset-0">
+              <EditorCanvas
+                onSaveStatusChange={setSaveStatus}
+                saveNowRef={saveNowRef}
+                getCanvasRef={getCanvasRef}
+              />
+            </div>
+          </main>
 
-        <AiSidebar isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} />
-      </div>
+          <AiSidebar isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} getCanvasRef={getCanvasRef} />
+        </div>
+      </EditorRoom>
 
       <ProjectSidebar
         isOpen={isSidebarOpen}

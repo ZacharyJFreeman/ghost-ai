@@ -1,0 +1,11 @@
+// Metadata only: the spec's Markdown lives in Vercel Blob, and `filePath` is its blob URL.
+model ProjectSpec {
+  id        String   @id @default(cuid())
+  projectId String
+  filePath  String
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+}

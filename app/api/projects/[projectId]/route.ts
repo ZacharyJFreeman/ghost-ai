@@ -8,6 +8,7 @@ import {
 import { deleteCanvasBlob } from "@/lib/canvas-storage"
 import { prisma } from "@/lib/prisma"
 import { parseRenameName } from "@/lib/project-validation"
+import { deleteSpecBlobs } from "@/lib/spec-storage"
 
 interface RouteContext {
   params: Promise<{ projectId: string }>
@@ -65,8 +66,12 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
     select: { canvasJsonPath: true },
   })) ?? { canvasJsonPath: null }
 
+  // The spec rows go with the project (cascade); their blobs are removed here.
+  const specs = await prisma.projectSpec.findMany({ where: { projectId }, select: { filePath: true } })
+
   await prisma.project.delete({ where: { id: projectId } })
   if (canvasJsonPath) await deleteCanvasBlob(canvasJsonPath)
+  await deleteSpecBlobs(specs.map((spec) => spec.filePath))
 
   return NextResponse.json({ success: true })
 }

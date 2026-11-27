@@ -4,6 +4,7 @@ import { X } from "lucide-react"
 import type { ReactNode } from "react"
 
 import { pillButtonClasses } from "@/components/app/pill-button"
+import { cn } from "@/lib/utils"
 import {
   Dialog,
   DialogClose,
@@ -20,6 +21,8 @@ interface AppDialogProps {
   description?: ReactNode
   footer?: ReactNode
   children?: ReactNode
+  // Extra classes for the dialog frame (for example a wider max width).
+  contentClassName?: string
 }
 
 // App-level dialog shell: large rounded frame, header with a divider, padded
@@ -31,12 +34,16 @@ export function AppDialog({
   description,
   footer,
   children,
+  contentClassName,
 }: AppDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="gap-0 rounded-3xl border border-surface-border bg-surface p-0 ring-0 sm:max-w-lg"
+        className={cn(
+          "gap-0 rounded-3xl border border-surface-border bg-surface p-0 ring-0 sm:max-w-lg",
+          contentClassName,
+        )}
       >
         <DialogHeader className="gap-1.5 border-b border-surface-border px-6 py-5 pr-14">
           <DialogTitle className="text-lg font-medium text-copy-primary">{title}</DialogTitle>
@@ -45,6 +52,7 @@ export function AppDialog({
           )}
         </DialogHeader>
         <DialogClose
+          aria-label="Close"
           className={`${pillButtonClasses({ variant: "ghost", size: "icon-sm" })} absolute top-4 right-4`}
         >
           <X />
